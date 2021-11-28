@@ -1,41 +1,55 @@
+/*
+ * @Author: zhang
+ * @Date: 2021-11-28 10:17:19
+ * @LastEditTime: 2021-11-28 13:37:18
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \tinamic\app\queries\baseinfo_query.go
+ */
 package queries
 
 import (
 	"context"
 	"errors"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"regexp"
 	"strconv"
 	"strings"
-	"tinamic/app/models"
+	. "tinamic/app/models"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func QueryLayerInfo(db *pgxpool.Pool)([]models.LayerBaseInfo,error){
+func QueryLyrBaseInfo(db *pgxpool.Pool) ([]LayerBaseInfo, error) {
 
-	var layerinfo []models.LayerBaseInfo
+	var lyrBaseInfo []LayerBaseInfo
 	// Send query to database.
-	rows,err:= db.Query(context.Background(),sqlLayerInfo)
-
-	for rows.Next(){
-		rows.Scan(&layerinfo)
-	}
-
+	rows, err := db.Query(context.Background(), sqlLyrBaseInfo)
 	if err != nil {
 		// Return empty object and error.
-		return layerinfo, err
+		return lyrBaseInfo, err
 	}
+
+	for rows.Next() {
+
+		var info LayerBaseInfo
+
+		rows.Scan(&info.UID, &info.Schema, &info.Name, &info.Attr, &info.LayerType)
+
+		lyrBaseInfo = append(lyrBaseInfo, info)
+	}
+
 	// Return query result.
-	return layerinfo, nil
+	return lyrBaseInfo, nil
 }
 
 //QueryVersion 获取postgis版本
-func QueryVersion(db *pgxpool.Pool)(map[string]string,int,error) {
+func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
 
 	row := db.QueryRow(context.Background(), sqlPostGISVersion)
 	var verStr string
-	err:= row.Scan(&verStr)
+	err := row.Scan(&verStr)
 	if err != nil {
-		return nil,0,err
+		return nil, 0, err
 	}
 	// Parse full version string
 	//   POSTGIS="3.0.0 r17983" [EXTENSION] PGSQL="110" GEOS="3.8.0-CAPI-1.11.0 "
@@ -48,7 +62,7 @@ func QueryVersion(db *pgxpool.Pool)(map[string]string,int,error) {
 
 	pgisVer, ok := vers["POSTGIS"]
 	if !ok {
-		return nil,0,errors.New("POSTGIS key missing from postgis_full_version")
+		return nil, 0, errors.New("POSTGIS key missing from postgis_full_version")
 	}
 	// Convert Postgis version string into a lexically (and/or numerically) sortable form
 	// "3.1.1 r17983" => "3001001"
@@ -61,5 +75,5 @@ func QueryVersion(db *pgxpool.Pool)(map[string]string,int,error) {
 	//globalVersions = vers
 	globalPostGISVersion := pgisNum
 
-	return vers,globalPostGISVersion,nil
+	return vers, globalPostGISVersion, nil
 }

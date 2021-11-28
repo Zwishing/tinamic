@@ -1,13 +1,22 @@
+/*
+ * @Author: your name
+ * @Date: 2021-11-28 10:17:19
+ * @LastEditTime: 2021-11-28 13:46:45
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \tinamic\app\models\user_model.go
+ */
 package models
 
 import (
-	"github.com/gofrs/uuid"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // User struct to describe User object.
 type User struct {
-	ID           uuid.UUID `db:"id" json:"id" validate:"required,uuid"`
+	UID          uuid.UUID `db:"uid" json:"id" validate:"required,uuid"`
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
 	Email        string    `db:"email" json:"email" validate:"required,email,lte=255"`

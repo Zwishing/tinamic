@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2021-11-28 10:17:19
+ * @LastEditTime: 2021-11-28 12:54:09
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \tinamic\test\baseinfo_query_test.go
+ */
 package test
 
 import (
@@ -7,9 +15,13 @@ import (
 	"tinamic/database"
 )
 
-var db, _ = database.DbConnect()
-
 func TestQueryVersion(t *testing.T) {
-	ver,_,_:=queries.QueryVersion(db)
+	var db, _ = database.DbConnect()
+	ver, _, _ := queries.QueryVersion(db)
 	fmt.Println(ver)
+}
+
+func TestQueryLyrBaseInfo(t *testing.T) {
+	var db, _ = database.DbConnect()
+	queries.QueryLyrBaseInfo(db)
 }
