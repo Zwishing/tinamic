@@ -4,7 +4,7 @@
  * @LastEditTime: 2021-11-28 13:23:26
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: \tinamic\app\models\baseinfo_model.go
+ * @FilePath: \tinamic\app\models\layerinfo_model.go
  */
 package models
 
@@ -14,8 +14,8 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// LayerBaseInfo 管理所有图层信息
-type LayerBaseInfo struct {
+// LayerInfo 管理所有图层信息
+type LayerInfo struct {
 	UID         uuid.UUID
 	Schema      string
 	Name        string

@@ -13,14 +13,14 @@ import (
 // of the form "Zoom/X/Y.Ext"
 type Tile struct {
 	Zoom   uint8    `json:"zoom"`
-	X      uint32    `json:"x"`
-	Y      uint32    `json:"y"`
+	X      int32    `json:"x"`
+	Y      int32    `json:"y"`
 	Ext    string `json:"ext"`
 	Bounds Bounds `json:"bounds"`
 }
 
 // MakeTile 通过路由参数构造Tile对象
-func MakeTile(zoom uint8,x uint32,y uint32) (tile *Tile, e error) {
+func MakeTile(zoom uint8,x int32,y int32) (tile *Tile, e error) {
 	tile = &Tile{Zoom: zoom, X: x, Y: y, Ext: "pbf"}
 	// No tile numbers outside the tile grid implied
 	// by the zoom?
@@ -45,7 +45,7 @@ func (tile *Tile) IsValid() (bool,error) {
 	if tile.Zoom > 32{
 		return false, err
 	}
-	worldTileSize := uint32(1) << uint32(tile.Zoom)
+	worldTileSize := int32(1) << int32(tile.Zoom)
 	if tile.X >= worldTileSize ||
 		tile.Y >= worldTileSize {
 		return false,err

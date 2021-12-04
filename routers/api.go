@@ -1,10 +1,25 @@
 package routers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+
+	."tinamic/app/controllers"
+)
 
 func RegisterAPI(api fiber.Router) {
-	registerRoles(api)
-	registerUsers(api)
+	registerLayer(api)
+	//registerRoles(api)
+	//registerUsers(api)
+}
+
+func registerLayer(api fiber.Router) {
+	layer := api.Group("/layer")
+
+	layer.Get("/layerinfo", GetLayerInfo)
+	layer.Get("/tablelayer/:name/:z/:x/:y.pbf",GetLayerInfo)
+	//layer.Post("/")
+	//layer.Put("/:id")
+	//layer.Delete("/:id")
 }
 
 func registerRoles(api fiber.Router) {

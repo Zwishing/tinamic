@@ -2,23 +2,19 @@ package database
 
 import (
 	"context"
+	"github.com/spf13/viper"
 	"time"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/logrusadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	// Config
-	"github.com/spf13/viper"
-
 	// Logging
 	log "github.com/sirupsen/logrus"
 
-	. "tinamic/utils"
+	."tinamic/utils"
 )
-
 func init(){
-	//读取数据库配置
 	LoadConfig()
 }
 

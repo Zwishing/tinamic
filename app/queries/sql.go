@@ -12,7 +12,27 @@ package queries
 const (
 
 	//
-	sqlLyrBaseInfo = `SELECT uid,schema,name,attr,layertype FROM layer.layerinfo`
+	sqlLayerInfo = `SELECT uid,schema,name,attr,layertype FROM layer.layerinfo`
+
+	sqlTableLayer = `
+		SELECT ST_AsMVT(mvtgeom, {{ .MvtParams }}) FROM (
+			SELECT ST_AsMVTGeom(
+				ST_Transform(ST_Force2D(t."{{ .GeometryColumn }}"), {{ .TileSrid }}),
+				bounds.geom_clip,
+				{{ .Resolution }},
+				{{ .Buffer }}
+		  	) AS "{{ .GeometryColumn }}"
+		  	{{ if .Properties }}
+		  	, {{ .Properties }}
+		  	{{ end }}
+			FROM "{{ .Schema }}"."{{ .Table }}" t, (
+				SELECT {{ .TileSQL }}  AS geom_clip,
+						{{ .QuerySQL }} AS geom_query
+				) bounds
+			WHERE ST_Intersects(t."{{ .GeometryColumn }}",
+								ST_Transform(bounds.geom_query, {{ .Srid }}))
+			{{ .Limit }}
+		) mvtgeom`
 
 	//
 	sqlPostGISVersion = `SELECT postgis_full_version()`
@@ -20,7 +40,7 @@ const (
 
 // 创建表的sql语句
 const (
-	createLayerBaseInfo = `CREATE TABLE layer.layerinfo(
+	createLayerInfo = `CREATE TABLE layer.layerinfo(
 		id  serial PRIMARY KEY,
 		uid uuid NOT NULL UNIQUE,
 		schema varchar(255) NOT NULL,
@@ -32,7 +52,7 @@ const (
 		updateat timestamptz 
 	)`
 
-	insertLayerBaseInfoTest = ` INSERT INTO layer.layerinfo(
+	insertLayerInfoTest = ` INSERT INTO layer.layerinfo(
 		uid, 
 		schema,
 		name,

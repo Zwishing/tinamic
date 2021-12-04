@@ -4,7 +4,7 @@
  * @LastEditTime: 2021-11-28 13:37:18
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: \tinamic\app\queries\baseinfo_query.go
+ * @FilePath: \tinamic\app\queries\layerinfo_query.go
  */
 package queries
 
@@ -19,27 +19,30 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func QueryLyrBaseInfo(db *pgxpool.Pool) ([]LayerBaseInfo, error) {
+// QueryLayerInfo 查询所有的图层
+func QueryLayerInfo(db *pgxpool.Pool) ([]LayerInfo, error) {
 
-	var lyrBaseInfo []LayerBaseInfo
+	var layerInfo []LayerInfo
 	// Send query to database.
-	rows, err := db.Query(context.Background(), sqlLyrBaseInfo)
+	rows, err := db.Query(context.Background(), sqlLayerInfo)
 	if err != nil {
 		// Return empty object and error.
-		return lyrBaseInfo, err
+		return layerInfo, err
 	}
 
 	for rows.Next() {
 
-		var info LayerBaseInfo
+		var info LayerInfo
 
-		rows.Scan(&info.UID, &info.Schema, &info.Name, &info.Attr, &info.LayerType)
-
-		lyrBaseInfo = append(lyrBaseInfo, info)
+		err := rows.Scan(&info.UID, &info.Schema, &info.Name, &info.Attr, &info.LayerType)
+		if err != nil {
+			return nil, err
+		}
+		layerInfo = append(layerInfo, info)
 	}
 
 	// Return query result.
-	return lyrBaseInfo, nil
+	return layerInfo, nil
 }
 
 //QueryVersion 获取postgis版本

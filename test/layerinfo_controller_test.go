@@ -4,7 +4,7 @@
  * @LastEditTime: 2021-11-28 11:23:34
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: \tinamic\test\baseinfo_controller_test.go
+ * @FilePath: \tinamic\test\layerinfo_controller_test.go
  */
 package test
 
@@ -17,5 +17,5 @@ import (
 
 func TestGetLyrBaseInfo(t *testing.T) {
 	c := fiber.Ctx{}
-	controllers.GetLyrBaseInfo(&c)
+	controllers.GetLayerInfo(&c)
 }

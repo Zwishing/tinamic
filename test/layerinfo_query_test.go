@@ -4,7 +4,7 @@
  * @LastEditTime: 2021-11-28 12:54:09
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: \tinamic\test\baseinfo_query_test.go
+ * @FilePath: \tinamic\test\layerinfo_query_test.go
  */
 package test
 
@@ -23,5 +23,8 @@ func TestQueryVersion(t *testing.T) {
 
 func TestQueryLyrBaseInfo(t *testing.T) {
 	var db, _ = database.DbConnect()
-	queries.QueryLyrBaseInfo(db)
+	_, err := queries.QueryLayerInfo(db)
+	if err != nil {
+		return 
+	}
 }
