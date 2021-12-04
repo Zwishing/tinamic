@@ -3,24 +3,43 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	hashing "github.com/thomasvvugt/fiber-hashing"
 	"log"
-	"time"
+	configuration "tinamic/config"
+	"tinamic/database"
 	. "tinamic/routers"
 )
 
-func init()  {
-	fmt.Println(time.Time{})
-	fmt.Println(time.Now())
-}
 func main() {
 
-	app := fiber.New()
+	app:=NewApp()
 
-	SwaggerRoute(app)
+	db,err :=database.DbConnect(app.Config.GetPgConfig())
+	if err!=nil {
+		fmt.Println("failed to connect to database:", err.Error())
+	}
 
 	api := app.Group("/api/v1")
-	RegisterAPI(api)
-
+	RegisterAPI(api,db)
 
 	log.Fatal(app.Listen(":3001"))
+}
+
+
+type App struct {
+	*fiber.App
+	Hasher hashing.Driver
+	//Session *session.Session
+	Config *configuration.Config
+}
+
+func NewApp() *App{
+	config:=configuration.New()
+	app := App{
+		App:     fiber.New(*config.GetFiberConfig()),
+		Hasher:  hashing.New(config.GetHasherConfig()),
+		//Session: session.New(config.GetSessionConfig()),
+		Config: config,
+	}
+	return &app
 }

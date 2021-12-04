@@ -1,7 +1,10 @@
-package models
+package geos
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"math"
 )
 
@@ -28,8 +31,11 @@ func (b *Bounds) SQL() string {
 
 // Expand increases the size of this bounds in all directions, respecting
 // the limits of the Web Mercator plane
-func (b *Bounds) Expand(serverBounds *Bounds, size float64) {
-	//serverBounds, _ := feature.GetServerBounds()
+func (b *Bounds) Expand(size float64) {
+	serverBounds,err:= GetServerBounds()
+	if err!=nil {
+		panic("")
+	}
 	b.Xmin = math.Max(b.Xmin-size, serverBounds.Xmin)
 	b.Ymin = math.Max(b.Ymin-size, serverBounds.Ymin)
 	b.Xmax = math.Min(b.Xmax+size, serverBounds.Xmax)
@@ -46,7 +52,7 @@ func (b *Bounds) Expand(serverBounds *Bounds, size float64) {
 // 	return lng, lat
 // }
 
-func (b *Bounds) sanitize() {
+func (b *Bounds) Sanitize() {
 	if b.SRID == 4326 {
 		if b.Ymin < -90 {
 			b.Ymin = 90
@@ -82,3 +88,36 @@ func (b *Bounds) sanitize() {
 // 	s[0], s[1] = fromMercator(xc, yc)
 // 	return s
 // }
+
+func getServerBounds() (b *Bounds, e error) {
+
+	srid := viper.GetInt("CoordinateSystem.SRID")
+	xmin := viper.GetFloat64("CoordinateSystem.Xmin")
+	ymin := viper.GetFloat64("CoordinateSystem.Ymin")
+	xmax := viper.GetFloat64("CoordinateSystem.Xmax")
+	ymax := viper.GetFloat64("CoordinateSystem.Ymax")
+
+	log.Infof("Using CoordinateSystem.SRID %d with bounds [%g, %g, %g, %g]",
+		srid, xmin, ymin, xmax, ymax)
+
+	width := xmax - xmin
+	height := ymax - ymin
+	size := math.Min(width, height)
+
+	/* Not square enough to just adjust */
+	if math.Abs(width-height) > 0.01*size {
+		return nil, errors.New("CoordinateSystem bounds must be square")
+	}
+
+	cx := xmin + width/2
+	cy := ymin + height/2
+
+	/* Perfectly square bounds please */
+	xmin = cx - size/2
+	ymin = cy - size/2
+	xmax = cx + size/2
+	ymax = cy + size/2
+
+	globalServerBounds := &Bounds{srid, xmin, ymin, xmax, ymax}
+	return globalServerBounds, nil
+}

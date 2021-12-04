@@ -2,21 +2,22 @@ package routers
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v4/pgxpool"
 
 	."tinamic/app/controllers"
 )
 
-func RegisterAPI(api fiber.Router) {
-	registerLayer(api)
+func RegisterAPI(api fiber.Router,db *pgxpool.Pool) {
+	registerLayer(api,db)
 	//registerRoles(api)
 	//registerUsers(api)
 }
 
-func registerLayer(api fiber.Router) {
+func registerLayer(api fiber.Router,db *pgxpool.Pool) {
 	layer := api.Group("/layer")
 
-	layer.Get("/layerinfo", GetLayerInfo)
-	layer.Get("/tablelayer/:name/:z/:x/:y.pbf",GetLayerInfo)
+	layer.Get("/table-layers", GetAllTableLayers(db))
+	layer.Get("/tile/:name/:z/:x/:y.pbf",GetTableLayerTile(db))
 	//layer.Post("/")
 	//layer.Put("/:id")
 	//layer.Delete("/:id")

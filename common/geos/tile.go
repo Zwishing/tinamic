@@ -1,4 +1,4 @@
-package models
+package geos
 
 import (
 	"errors"
@@ -32,7 +32,7 @@ func MakeTile(zoom uint8,x int32,y int32) (tile *Tile, e error) {
 	return tile, nil
 }
 
-func (tile *Tile) width() float64 {
+func (tile *Tile) Width() float64 {
 	return math.Abs(tile.Bounds.Xmax - tile.Bounds.Xmin)
 }
 

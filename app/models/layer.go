@@ -2,6 +2,7 @@ package models
 
 import (
 	"net/http"
+	"tinamic/common/geos"
 )
 
 // LayerType 用来定义是基本图层还是函数图层
@@ -32,7 +33,7 @@ type Layer interface {
 	GetDescription() string
 	GetName() string
 	GetSchema() string
-	GetTileRequest(tile Tile, r *http.Request) TileRequest
+	GetTileRequest(tile geos.Tile, r *http.Request) geos.TileRequest
 	WriteLayerJSON(w http.ResponseWriter, req *http.Request) error
 }
 
