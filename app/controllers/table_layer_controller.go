@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
+
 	"tinamic/app/models"
 	"tinamic/app/queries"
 	"tinamic/common/geos"

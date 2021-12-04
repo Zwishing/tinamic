@@ -7,7 +7,7 @@ import (
 	"log"
 	configuration "tinamic/config"
 	"tinamic/database"
-	. "tinamic/routers"
+	"tinamic/routers"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	}
 
 	api := app.Group("/api/v1")
-	RegisterAPI(api,db)
+	routers.RegisterAPI(api,db)
 
 	log.Fatal(app.Listen(":3001"))
 }

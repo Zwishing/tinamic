@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	."tinamic/app/controllers"
+	"tinamic/app/controllers"
 )
 
 func RegisterAPI(api fiber.Router,db *pgxpool.Pool) {
@@ -16,8 +16,8 @@ func RegisterAPI(api fiber.Router,db *pgxpool.Pool) {
 func registerLayer(api fiber.Router,db *pgxpool.Pool) {
 	layer := api.Group("/layer")
 
-	layer.Get("/table-layers", GetAllTableLayers(db))
-	layer.Get("/tile/:name/:z/:x/:y.pbf",GetTableLayerTile(db))
+	layer.Get("/table-layers", controllers.GetAllTableLayers(db))
+	layer.Get("/tile/:name/:z/:x/:y.pbf",controllers.GetTableLayerTile(db))
 	//layer.Post("/")
 	//layer.Put("/:id")
 	//layer.Delete("/:id")

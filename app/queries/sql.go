@@ -11,9 +11,10 @@ package queries
 import (
 	"fmt"
 	"strings"
-	. "tinamic/app/models"
+
+	"tinamic/app/models"
 	"tinamic/common/geos"
-	. "tinamic/common/query"
+	"tinamic/common/query"
 )
 
 //查询的sql语句
@@ -61,7 +62,7 @@ const (
 
 )
 
-func RequestSQL(lyr *TableLayer,tile *geos.Tile, qp *QueryParameters) (string, error) {
+func RequestSQL(lyr *models.TableLayer,tile *geos.Tile, qp *query.QueryParameters) (string, error) {
 
 	type sqlParameters struct {
 		TileSQL        string
@@ -129,7 +130,7 @@ func RequestSQL(lyr *TableLayer,tile *geos.Tile, qp *QueryParameters) (string, e
 	// TODO: Remove ST_Force2D when fixes to line clipping are common
 	// in GEOS. See https://trac.osgeo.org/postgis/ticket/4690
 
-	sql, err := RenderSQLTemplate("tabletilesql", sqlTableLayer, sp)
+	sql, err := query.RenderSQLTemplate("tabletilesql", sqlTableLayer, sp)
 	if err != nil {
 		return "", err
 	}
