@@ -2,23 +2,28 @@ package models
 
 import (
 	"github.com/gofrs/uuid"
+	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type TableLayer struct {
-	UID         uuid.UUID
-	Schema      string
-	Name        string
-	Attr        map[string]TableProperty
-	Description string
+	ID             int
+	UID            uuid.UUID
+	Schema         string
+	Name           string
+	Attr           map[string]TableProperty
 	GeometryType   string
 	IDColumn       string
 	GeometryColumn string
 	Srid           int
-	Center       [2]float64
-	Bounds       [4]float64
-	MinZoom      int
-	MaxZoom      int
-	TileURL      string
+	Center         [2]float64
+	Bounds         [4]float64
+	MinZoom        int
+	MaxZoom        int
+	TileURL        string
+	Description    string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type TableProperty struct {
@@ -26,6 +31,21 @@ type TableProperty struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 	Order       int
+}
+
+func NewTableLayer()*TableLayer{
+	v4, err := uuid.NewV4()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &TableLayer{
+		UID: v4,
+		Schema:"layers",
+		GeometryColumn:"geom",
+		Srid:4326,
+		MinZoom: 0,
+		MaxZoom: 22,
+	}
 }
 
 func (lyr *TableLayer) GetType() LayerType {

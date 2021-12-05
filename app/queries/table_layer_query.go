@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4/pgxpool"
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,21 @@ import (
 	"tinamic/common/geos"
 
 )
+
+// 添加一个tablelayer
+func InsertTableLayer(db *pgxpool.Pool,tableLayer models.TableLayer)(pgconn.CommandTag,error){
+	sql:=`INSERT INTO layers.table_layer(
+			uid,schema,name,attr,geometry_column,geometry_type,srid,bounds,center,create_at,update_at)
+          VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`
+	tag,err:=db.Exec(context.Background(),sql,
+		tableLayer.UID,tableLayer.Schema,tableLayer.Name,tableLayer.Attr,tableLayer.GeometryColumn,
+		tableLayer.GeometryType,tableLayer.Srid,tableLayer.Bounds,tableLayer.Center,
+		tableLayer.CreatedAt, tableLayer.UpdatedAt)
+	if err!=nil{
+		return nil, err
+	}
+	return tag,nil
+}
 
 // QueryTableLayers 查询所有的图层
 func QueryTableLayers(db *pgxpool.Pool) ([]models.TableLayer, error) {
@@ -27,7 +43,7 @@ func QueryTableLayers(db *pgxpool.Pool) ([]models.TableLayer, error) {
 	for rows.Next() {
 		var tableLayer models.TableLayer
 		err := rows.Scan(&tableLayer.UID, &tableLayer.Schema,
-			             &tableLayer.Name, &tableLayer.Attr)
+			             &tableLayer.Name, &tableLayer.Attr,&tableLayer.Srid)
 		if err != nil {
 			return nil, err
 		}

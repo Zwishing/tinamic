@@ -10,12 +10,7 @@ package test
 
 import (
 	"testing"
-	"tinamic/app/controllers"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 func TestGetLyrBaseInfo(t *testing.T) {
-	c := fiber.Ctx{}
-	controllers.GetLayerInfo(&c)
 }

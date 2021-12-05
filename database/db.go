@@ -82,7 +82,7 @@ func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
 	pgisNum := 1000000*pgisMaj + 1000*pgisMin + pgisPat
 	vers["POSTGISFULL"] = strconv.Itoa(pgisNum)
 	//globalVersions = vers
-	globalPostGISVersion := pgisNum
+	PostGISVersion := pgisNum
 
-	return vers, globalPostGISVersion, nil
+	return vers, PostGISVersion, nil
 }

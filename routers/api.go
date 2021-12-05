@@ -10,11 +10,13 @@ import (
 func RegisterAPI(api fiber.Router,db *pgxpool.Pool) {
 	registerLayer(api,db)
 	//registerRoles(api)
-	//registerUsers(api)
+	registerUsers(api,db)
 }
 
 func registerLayer(api fiber.Router,db *pgxpool.Pool) {
-	layer := api.Group("/layer")
+	layer := api.Group("/layers")
+
+	layer.Post("/add-table-layer",controllers.AddTableLayer(db))
 
 	layer.Get("/table-layers", controllers.GetAllTableLayers(db))
 	layer.Get("/tile/:name/:z/:x/:y.pbf",controllers.GetTableLayerTile(db))
@@ -23,22 +25,19 @@ func registerLayer(api fiber.Router,db *pgxpool.Pool) {
 	//layer.Delete("/:id")
 }
 
-func registerRoles(api fiber.Router) {
-	roles := api.Group("/roles")
+//func registerRoles(api fiber.Router) {
+//	roles := api.Group("/roles")
+//
+//	roles.Get("/", )
+//	roles.Get("/:id")
+//	roles.Post("/")
+//	roles.Put("/:id")
+//	roles.Delete("/:id")
+//}
 
-	roles.Get("/", )
-	roles.Get("/:id")
-	roles.Post("/")
-	roles.Put("/:id")
-	roles.Delete("/:id")
-}
-
-func registerUsers(api fiber.Router) {
+func registerUsers(api fiber.Router,db *pgxpool.Pool) {
 	users := api.Group("/users")
 
-	users.Get("/")
-	users.Get("/:id")
-	users.Post("/")
-	users.Put("/:id")
-	users.Delete("/:id")
+	users.Post("/register",controllers.Register(db))
+	users.Post("/login",controllers.Login(db))
 }

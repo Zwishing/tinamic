@@ -3,11 +3,13 @@ package controllers
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"time"
 
 	"tinamic/app/models"
 	"tinamic/app/queries"
 	"tinamic/common/geos"
 	"tinamic/common/query"
+	"tinamic/common/response"
 )
 
 //func GetTableLayer(ctx fiber.Ctx) error{
@@ -36,30 +38,43 @@ import (
 //	})
 //
 //}
+func AddTableLayer(db *pgxpool.Pool)fiber.Handler{
+	return func(ctx *fiber.Ctx) error {
+		tableLayer:=models.NewTableLayer()
+		{
+			tableLayer.Name="river"
+			tableLayer.Attr= map[string]models.TableProperty{}
+			tableLayer.Srid=queries.QuerySrid(db,tableLayer.GeometryColumn)
+			tableLayer.Bounds= queries.QueryBounds(db,tableLayer.GeometryColumn)
+			tableLayer.GeometryType=queries.QueryGeometryType(db,tableLayer.GeometryColumn)
+			tableLayer.Center=queries.QueryCenter(db,tableLayer.GeometryColumn)
+			tableLayer.CreatedAt=time.Now()
+			tableLayer.UpdatedAt=time.Now()
+		}
+
+		tag, err := queries.InsertTableLayer(db,*tableLayer)
+		if err != nil {
+			return response.Fail(ctx,"",err.Error())
+		}
+		return response.Success(ctx,"", string(tag))
+	}
+}
 
 func GetAllTableLayers(db *pgxpool.Pool) fiber.Handler{
 	return func(ctx *fiber.Ctx) error{
 		tableLayers, err := queries.QueryTableLayers(db)
 		if err != nil {
-			err := ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": true,
-				"msg":   "layers were not found",
-			})
+			err := response.Fail(ctx, fiber.Map{}, "layers were not found")
 			if err != nil {
 				return err
 			}
 		}
-
 		// Return status 200 OK.
-		err = ctx.JSON(fiber.Map{
-			"error":     false,
-			"msg":       nil,
-			"Layers": tableLayers,
-		})
+		err = response.Success(ctx,tableLayers,"layers query success")
 		if err != nil {
 			return err
 		}
-		return err
+		return nil
 	}
 }
 

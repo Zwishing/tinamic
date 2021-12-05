@@ -65,6 +65,7 @@ func New() *Config {
 	config.setDefaults()
 
 	// Select the .env file
+	//root,_:=os.Getwd()
 	config.AddConfigPath("./config")
 	config.SetConfigName("tinamic")
 	config.SetConfigType("toml")
@@ -155,7 +156,7 @@ func (config *Config) setDefaults()  {
 	config.SetDefault("FIBER_DISABLESTARTUPMESSAGE", false)
 	config.SetDefault("FIBER_REDUCEMEMORYUSAGE", false)
 
-	// Set default Fiber CORS middleware configuration
+	// Set default Fiber CORS middlewares configuration
 	config.SetDefault("MW_FIBER_CORS_ENABLED", false)
 	config.SetDefault("MW_FIBER_CORS_ALLOWORIGINS", "*")
 	config.SetDefault("MW_FIBER_CORS_ALLOWMETHODS", "GET,POST,HEAD,PUT,DELETE,PATCH")

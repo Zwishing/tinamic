@@ -3,11 +3,12 @@ package test
 import (
 	"fmt"
 	"testing"
-
-	. "tinamic/database"
+	"tinamic/config"
+	"tinamic/database"
 )
 
+var db, _ =database.DbConnect(config.New().GetPgConfig())
+
 func TestDbConnect(t *testing.T) {
-	db,err:=DbConnect()
-	fmt.Println(db,err)
+	fmt.Println(db)
 }

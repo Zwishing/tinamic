@@ -20,7 +20,7 @@ import (
 //查询的sql语句
 const (
 	//
-	sqlLayerInfo = `SELECT uid,schema,name,attr,layertype FROM layer.layerinfo;`
+	sqlLayerInfo = `SELECT uid,schema,name,attr,srid FROM layers.table_layer;`
 	sqlTableLayerByName = `SELECT * FROM layer.layerinfo WHERE name="%s";`
 
 	sqlTableLayer = `

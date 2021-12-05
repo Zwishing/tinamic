@@ -9,22 +9,13 @@
 package test
 
 import (
-	"fmt"
 	"testing"
-	"tinamic/app/queries"
-	"tinamic/database"
 )
 
 func TestQueryVersion(t *testing.T) {
-	var db, _ = database.DbConnect()
-	ver, _, _ := queries.QueryVersion(db)
-	fmt.Println(ver)
+
 }
 
 func TestQueryLyrBaseInfo(t *testing.T) {
-	var db, _ = database.DbConnect()
-	_, err := queries.QueryLayerInfo(db)
-	if err != nil {
-		return 
-	}
+
 }
