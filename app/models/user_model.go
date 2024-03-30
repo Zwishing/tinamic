@@ -4,12 +4,12 @@ import "tinamic/common/utils"
 
 // Account 账号
 type Account struct {
-	Id       int    `json:"id,omitempty"`
-	UserId   int    `json:"user_id,omitempty"`
-	OpenCode string `json:"open_code,omitempty"`
-	Category int    `json:"category,omitempty"`
-	Creator  string `json:"creator,omitempty"`
-	BaseRecord
+	Id           int    `json:"id,omitempty"`
+	UserId       int    `json:"user_id,omitempty"`
+	LoginAccount string `json:"login_account,omitempty"`
+	Category     int    `json:"category,omitempty"`
+	*BaseRecord
+	*BaseRecorder
 }
 
 func NewAccount() {
@@ -51,8 +51,8 @@ type Permission struct {
 	Introduction string `json:"introduction,omitempty"`
 	Category     int    `json:"category,omitempty"`
 	Uri          int    `json:"uri,omitempty"`
-	BaseRecord
-	BaseRecorder
+	*BaseRecord
+	*BaseRecorder
 }
 
 // Role 角色
@@ -62,8 +62,8 @@ type Role struct {
 	Code         string `json:"code,omitempty"`
 	Name         string `json:"name,omitempty"`
 	Introduction string `json:"introduction,omitempty"`
-	BaseRecord
-	BaseRecorder
+	*BaseRecord
+	*BaseRecorder
 }
 
 // UserRole 用户角色
@@ -71,8 +71,8 @@ type UserRole struct {
 	Id     int `json:"id,omitempty"`
 	UserId int `json:"user_id,omitempty"`
 	RoleId int `json:"role_id,omitempty"`
-	BaseRecord
-	BaseRecorder
+	*BaseRecord
+	*BaseRecorder
 }
 
 // RolePermission 角色权限
@@ -80,6 +80,6 @@ type RolePermission struct {
 	Id           int `json:"id,omitempty"`
 	RoleId       int `json:"role_id,omitempty"`
 	PermissionId int `json:"permission_id,omitempty"`
-	BaseRecord
-	BaseRecorder
+	*BaseRecord
+	*BaseRecorder
 }

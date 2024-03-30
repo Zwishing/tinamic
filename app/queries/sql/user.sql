@@ -4,11 +4,12 @@ CREATE SCHEMA IF NOT EXISTS user_info;
 CREATE TABLE IF NOT EXISTS user_info.account(
     id serial PRIMARY KEY,
     user_id integer,
-    open_code varchar(255),
+    login_account varchar(255),
     category smallint,
     created timestamptz,
     creator varchar(72),
     edited timestamptz,
+    editor varchar(72),
     deleted bool DEFAULT FALSE
 );
 -- 注释
@@ -16,11 +17,12 @@ COMMENT ON TABLE user_info.account IS '账号表:记录登录账号信息';
 
 COMMENT ON COLUMN user_info.account.id IS '账号ID';
 COMMENT ON COLUMN user_info.account.user_id IS '用户ID';
-COMMENT ON COLUMN user_info.account.open_code IS '登录账号';
-COMMENT ON COLUMN user_info.account.category IS '账号类别';
+COMMENT ON COLUMN user_info.account.login_account IS '登录账号';
+COMMENT ON COLUMN user_info.account.category IS '账号类别,1=用户名，2=邮箱，3=手机号';
 COMMENT ON COLUMN user_info.account.created IS '创建时间';
 COMMENT ON COLUMN user_info.account.creator IS '创建人';
 COMMENT ON COLUMN user_info.account.edited IS '修改时间';
+COMMENT ON COLUMN user_info.account.editor IS '修改人';
 COMMENT ON COLUMN user_info.account.deleted IS '逻辑删除:true=删除,false=未删除';
 -- 索引
 CREATE INDEX account_id_index ON user_info.account(id);
@@ -82,7 +84,7 @@ COMMENT ON COLUMN user_info.permission.parent_id IS '所属父级权限ID';
 COMMENT ON COLUMN user_info.permission.code IS '权限唯一CODE代码';
 COMMENT ON COLUMN user_info.permission.name IS '权限名称';
 COMMENT ON COLUMN user_info.permission.introduction IS '权限介绍';
-COMMENT ON COLUMN user_info.permission.category IS '权限类别';
+COMMENT ON COLUMN user_info.permission.category IS '权限类别,1=编辑,2=查看';
 COMMENT ON COLUMN user_info.permission.uri IS 'URL规则';
 COMMENT ON COLUMN user_info.permission.created IS '创建时间';
 COMMENT ON COLUMN user_info.permission.creator IS '创建人';
