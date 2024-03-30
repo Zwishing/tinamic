@@ -7,11 +7,11 @@ import (
 )
 
 func TestQueryGeometryType(t *testing.T) {
-	gt:=queries.QueryGeometryType(db,"geom")
+	gt := queries.QueryGeometryType(db, "geom")
 	fmt.Println(gt)
 }
 
 func TestQueryBounds(t *testing.T) {
-	gt:=queries.QueryBounds(db,"geom")
+	gt := queries.QueryBounds(db, "geom")
 	fmt.Println(gt)
 }

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="postgres@localhost" uuid="0426a3d2-f9dc-4183-be35-54f216a4f8de">
+    <data-source source="LOCAL" name="tinamic@localhost" uuid="c2469dfa-47a9-476e-b72b-c24c6e0ae2f5">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
+      <remarks>tinamic</remarks>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5433/tinamic</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

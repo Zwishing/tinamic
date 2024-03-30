@@ -1,43 +1,58 @@
 package routers
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v4/pgxpool"
-
+	"time"
 	"tinamic/app/controllers"
 )
 
-func RegisterAPI(api fiber.Router,db *pgxpool.Pool) {
-	registerLayer(api,db)
-	//registerRoles(api)
-	registerUsers(api,db)
+func RegisterAPI(api fiber.Router) {
+	registerMvtServices(api)
+	registerFeatureServices(api)
+	registerRasterServices(api)
+	registerData(api)
+	registerUsers(api)
 }
 
-func registerLayer(api fiber.Router,db *pgxpool.Pool) {
-	layer := api.Group("/layers")
+func registerMvtServices(api fiber.Router) {
+	layer := api.Group("/mvt-services")
 
-	layer.Post("/add-table-layer",controllers.AddTableLayer(db))
+	//layer.Get("/get_table_layers", controllers.GetTableLayers)
+	start:=time.Now()
+	layer.Get("/:uuid/:z/:x/:y.pbf",controllers.GetTableLayerTile)
+	fmt.Println(start.Sub(time.Now()))
 
-	layer.Get("/table-layers", controllers.GetAllTableLayers(db))
-	layer.Get("/tile/:name/:z/:x/:y.pbf",controllers.GetTableLayerTile(db))
-	//layer.Post("/")
-	//layer.Put("/:id")
-	//layer.Delete("/:id")
 }
 
-//func registerRoles(api fiber.Router) {
-//	roles := api.Group("/roles")
-//
-//	roles.Get("/", )
-//	roles.Get("/:id")
-//	roles.Post("/")
-//	roles.Put("/:id")
-//	roles.Delete("/:id")
-//}
+func registerFeatureServices(api fiber.Router) {
+	layer := api.Group("/feature-services")
 
-func registerUsers(api fiber.Router,db *pgxpool.Pool) {
+	//layer.Get("/get_table_layers", controllers.GetTableLayers)
+	layer.Get("/:uuid/:z/:x/:y.pbf",controllers.GetTableLayerTile)
+
+}
+
+func registerRasterServices(api fiber.Router) {
+	layer := api.Group("/raster-services")
+
+	//layer.Get("/get_table_layers", controllers.GetTableLayers)
+	layer.Get("/:uuid/:z/:x/:y.pbf",controllers.GetTableLayerTile)
+
+}
+
+func registerData(api fiber.Router) {
+	data := api.Group("/data")
+
+	data.Post("/upload",controllers.Upload)
+	data.Post("/publish",controllers.Publish)
+	data.Get("/get_spatial_data", controllers.QuerySpatialData)
+
+}
+
+func registerUsers(api fiber.Router,) {
 	users := api.Group("/users")
 
-	users.Post("/register",controllers.Register(db))
-	users.Post("/login",controllers.Login(db))
+	users.Post("/register",controllers.Register)
+	users.Post("/login",controllers.Login)
 }

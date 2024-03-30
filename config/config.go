@@ -29,6 +29,14 @@ type Config struct {
 	fiber *fiber.Config
 }
 
+var (
+	Conf *Config //配置文件
+)
+
+func init(){
+	Conf = New()
+}
+
 var defaultErrorHandler = func (c *fiber.Ctx, err error) error {
 	// Status code defaults to 500
 	code := fiber.StatusInternalServerError
@@ -57,10 +65,8 @@ var defaultErrorHandler = func (c *fiber.Ctx, err error) error {
 }
 
 func New() *Config {
-	config := &Config{
-		Viper: viper.New(),
-	}
-
+	config:=new(Config)
+	config.Viper=viper.New()
 	// Set default configurations
 	config.setDefaults()
 
@@ -101,7 +107,7 @@ func (config *Config) SetErrorHandler(errorHandler fiber.ErrorHandler) {
 }
 
 func (config *Config) setDefaults()  {
-	// Set default database connect config
+	// Set default database connect CONFIGFILE
 	config.SetDefault("DbConnection", "sslmode=disable")
 	// 1d, 1h, 1m, 1s, see https://golang.org/pkg/time/#ParseDuration
 	config.SetDefault("DbPoolMaxConnLifeTime", "1h")
@@ -109,7 +115,7 @@ func (config *Config) setDefaults()  {
 	config.SetDefault("DbTimeout", 10)
 	config.SetDefault("CORSOrigins", []string{"*"})
 
-	// Set default tile server config
+	// Set default tile server CONFIGFILE
 	config.SetDefault("DefaultResolution", 4096)
 	config.SetDefault("DefaultBuffer", 256)
 	config.SetDefault("MaxFeaturesPerTile", 10000)
@@ -132,7 +138,7 @@ func (config *Config) setDefaults()  {
 	config.SetDefault("FIBER_IMMUTABLE", false)
 	config.SetDefault("FIBER_UNESCAPEPATH", false)
 	config.SetDefault("FIBER_ETAG", false)
-	config.SetDefault("FIBER_BODYLIMIT", 4194304)
+	config.SetDefault("FIBER_BODYLIMIT", 209715200)//200*1024*1024
 	config.SetDefault("FIBER_CONCURRENCY", 262144)
 	config.SetDefault("FIBER_VIEWS", "html")
 	config.SetDefault("FIBER_VIEWS_DIRECTORY", "resources/views")
@@ -220,14 +226,14 @@ func (config *Config) GetHasherConfig() hashing.Config {
 	}
 }
 
-//func (config *Config) GetSessionConfig() session.Config {
+//func (CONFIGFILE *Config) GetSessionConfig() session.Config {
 //	var provider fsession.Provider
-//	switch strings.ToLower(config.GetString("SESSION_PROVIDER")) {
+//	switch strings.ToLower(CONFIGFILE.GetString("SESSION_PROVIDER")) {
 //	case "memcache":
 //		sessionProvider, err := memcache.New(memcache.Config{
-//			KeyPrefix:    config.GetString("SESSION_KEYPREFIX"),
+//			KeyPrefix:    CONFIGFILE.GetString("SESSION_KEYPREFIX"),
 //			ServerList:   []string {
-//				config.GetString("SESSION_HOST") + ":" + config.GetString("SESSION_PORT"),
+//				CONFIGFILE.GetString("SESSION_HOST") + ":" + CONFIGFILE.GetString("SESSION_PORT"),
 //			},
 //		})
 //		if err != nil {
@@ -238,12 +244,12 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //		break
 //	case "mysql":
 //		sessionProvider, err := mysql.New(mysql.Config{
-//			Host:            config.GetString("SESSION_HOST"),
-//			Port:            config.GetInt("SESSION_PORT"),
-//			Username:        config.GetString("SESSION_USERNAME"),
-//			Password:        config.GetString("SESSION_PASSWORD"),
-//			Database:        config.GetString("SESSION_DATABASE"),
-//			TableName:       config.GetString("SESSION_TABLENAME"),
+//			Host:            CONFIGFILE.GetString("SESSION_HOST"),
+//			Port:            CONFIGFILE.GetInt("SESSION_PORT"),
+//			Username:        CONFIGFILE.GetString("SESSION_USERNAME"),
+//			Password:        CONFIGFILE.GetString("SESSION_PASSWORD"),
+//			Database:        CONFIGFILE.GetString("SESSION_DATABASE"),
+//			TableName:       CONFIGFILE.GetString("SESSION_TABLENAME"),
 //		})
 //		if err != nil {
 //			fmt.Println("failed to initialized mysql session provider:", err.Error())
@@ -253,12 +259,12 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //		break
 //	case "postgresql", "postgres":
 //		sessionProvider, err := postgres.New(postgres.Config{
-//			Host:            config.GetString("SESSION_HOST"),
-//			Port:            config.GetInt64("SESSION_PORT"),
-//			Username:        config.GetString("SESSION_USERNAME"),
-//			Password:        config.GetString("SESSION_PASSWORD"),
-//			Database:        config.GetString("SESSION_DATABASE"),
-//			TableName:       config.GetString("SESSION_TABLENAME"),
+//			Host:            CONFIGFILE.GetString("SESSION_HOST"),
+//			Port:            CONFIGFILE.GetInt64("SESSION_PORT"),
+//			Username:        CONFIGFILE.GetString("SESSION_USERNAME"),
+//			Password:        CONFIGFILE.GetString("SESSION_PASSWORD"),
+//			Database:        CONFIGFILE.GetString("SESSION_DATABASE"),
+//			TableName:       CONFIGFILE.GetString("SESSION_TABLENAME"),
 //		})
 //		if err != nil {
 //			fmt.Println("failed to initialized postgresql session provider:", err.Error())
@@ -268,10 +274,10 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //		break
 //	case "redis":
 //		sessionProvider, err := redis.New(redis.Config{
-//			KeyPrefix:          config.GetString("SESSION_KEYPREFIX"),
-//			Addr:               config.GetString("SESSION_HOST") + ":" + config.GetString("SESSION_PORT"),
-//			Password:           config.GetString("SESSION_PASSWORD"),
-//			DB:                 config.GetInt("SESSION_DATABASE"),
+//			KeyPrefix:          CONFIGFILE.GetString("SESSION_KEYPREFIX"),
+//			Addr:               CONFIGFILE.GetString("SESSION_HOST") + ":" + CONFIGFILE.GetString("SESSION_PORT"),
+//			Password:           CONFIGFILE.GetString("SESSION_PASSWORD"),
+//			DB:                 CONFIGFILE.GetInt("SESSION_DATABASE"),
 //		})
 //		if err != nil {
 //			fmt.Println("failed to initialized redis session provider:", err.Error())
@@ -281,8 +287,8 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //		break
 //	case "sqlite3":
 //		sessionProvider, err := sqlite3.New(sqlite3.Config{
-//			DBPath:          config.GetString("SESSION_DATABASE"),
-//			TableName:       config.GetString("SESSION_TABLENAME"),
+//			DBPath:          CONFIGFILE.GetString("SESSION_DATABASE"),
+//			TableName:       CONFIGFILE.GetString("SESSION_TABLENAME"),
 //		})
 //		if err != nil {
 //			fmt.Println("failed to initialized sqlite3 session provider:", err.Error())
@@ -293,13 +299,13 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //	}
 //
 //	return session.Config{
-//		Lookup:     config.GetString("SESSION_LOOKUP"),
-//		Secure:     config.GetBool("SESSION_SECURE"),
-//		Domain:     config.GetString("SESSION_DOMAIN"),
-//		SameSite:   config.GetString("SESSION_SAMESITE"),
-//		Expiration: config.GetDuration("SESSION_EXPIRATION"),
+//		Lookup:     CONFIGFILE.GetString("SESSION_LOOKUP"),
+//		Secure:     CONFIGFILE.GetBool("SESSION_SECURE"),
+//		Domain:     CONFIGFILE.GetString("SESSION_DOMAIN"),
+//		SameSite:   CONFIGFILE.GetString("SESSION_SAMESITE"),
+//		Expiration: CONFIGFILE.GetDuration("SESSION_EXPIRATION"),
 //		Provider:   provider,
-//		GCInterval: config.GetDuration("SESSION_GCINTERVAL"),
+//		GCInterval: CONFIGFILE.GetDuration("SESSION_GCINTERVAL"),
 //	}
 //}
 

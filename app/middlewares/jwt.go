@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/gofrs/uuid"
 	"github.com/golang-jwt/jwt/v4"
 	"time"
@@ -38,4 +40,10 @@ func ReleaseToken(user models.User) (string, error){
 		return "",err
 	}
 	return tokenString,nil
+}
+
+func ValidateToken(app *fiber.App,token string){
+	app.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtKey,
+	}))
 }

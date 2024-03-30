@@ -1,29 +1,85 @@
-/*
- * @Author: your name
- * @Date: 2021-11-28 10:17:19
- * @LastEditTime: 2021-11-28 13:46:45
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: \tinamic\app\models\user_model.go
- */
 package models
 
-import (
-	"time"
+import "tinamic/common/utils"
 
-	"github.com/gofrs/uuid"
-)
-
-// User struct to describe User object.
-type User struct {
-	ID           int
-	UID          uuid.UUID `db:"uid" json:"id" validate:"required,uuid"`
-	Name         string
-	PasswordHash string    `db:"password_hash" json:"password_hash,omitempty" validate:"required,lte=255"`
-	UserStatus   int       `db:"user_status" json:"user_status" validate:"required,len=1"`
-	UserRole     string    `db:"user_role" json:"user_role" validate:"required,lte=25"`
-	CreatedAt    time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
+// Account 账号
+type Account struct {
+	Id       int    `json:"id,omitempty"`
+	UserId   int    `json:"user_id,omitempty"`
+	OpenCode string `json:"open_code,omitempty"`
+	Category int    `json:"category,omitempty"`
+	Creator  string `json:"creator,omitempty"`
+	BaseRecord
 }
 
+func NewAccount() {
 
+}
+
+// User 用户
+type User struct {
+	Id        int    `json:"id,omitempty"`
+	State     bool   `json:"state,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Avatar    []byte `json:"avatar,omitempty"`
+	CellPhone string `json:"cell_phone,omitempty"`
+	Salt      string `json:"salt,omitempty"`
+	Password  string `json:"password,omitempty"`
+	*BaseRecord
+	*BaseRecorder
+}
+
+func NewUser(name string, password string, creator string, editor string) *User {
+	baseRecord := NewBaseRecord()
+	baseRecorder := NewBaseRecorder(creator, editor)
+	return &User{
+		State:        true,
+		Name:         name,
+		Salt:         utils.RandomSalt(),
+		Password:     password,
+		BaseRecord:   baseRecord,
+		BaseRecorder: baseRecorder,
+	}
+}
+
+// Permission 权限
+type Permission struct {
+	Id           int    `json:"id,omitempty"`
+	ParentId     int    `json:"parent_id,omitempty"`
+	Code         string `json:"code,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Introduction string `json:"introduction,omitempty"`
+	Category     int    `json:"category,omitempty"`
+	Uri          int    `json:"uri,omitempty"`
+	BaseRecord
+	BaseRecorder
+}
+
+// Role 角色
+type Role struct {
+	Id           int    `json:"id,omitempty"`
+	ParentId     int    `json:"parent_id,omitempty"`
+	Code         string `json:"code,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Introduction string `json:"introduction,omitempty"`
+	BaseRecord
+	BaseRecorder
+}
+
+// UserRole 用户角色
+type UserRole struct {
+	Id     int `json:"id,omitempty"`
+	UserId int `json:"user_id,omitempty"`
+	RoleId int `json:"role_id,omitempty"`
+	BaseRecord
+	BaseRecorder
+}
+
+// RolePermission 角色权限
+type RolePermission struct {
+	Id           int `json:"id,omitempty"`
+	RoleId       int `json:"role_id,omitempty"`
+	PermissionId int `json:"permission_id,omitempty"`
+	BaseRecord
+	BaseRecorder
+}

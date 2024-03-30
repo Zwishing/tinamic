@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	log "github.com/sirupsen/logrus"
 	hashing "github.com/thomasvvugt/fiber-hashing"
-	"log"
-	configuration "tinamic/config"
-	"tinamic/database"
+	"tinamic/common/database"
+	"tinamic/config"
 	"tinamic/routers"
 )
+
 
 func main() {
 
 	app:=InitApp()
 	app.Use(cors.New())
-	db,err :=database.DbConnect(app.Config.GetPgConfig())
+	err := database.DbConnect(config.Conf.GetPgConfig())
 	if err!=nil {
 		fmt.Println("failed to connect to database:", err.Error())
 	}
 	routers.SwaggerRoute(app.App)
 	api := app.Group("/api/v1")
-	routers.RegisterAPI(api,db)
+	routers.RegisterAPI(api)
 
-	log.Fatal(app.Listen(":8080"))
+	log.Fatal(app.Listen(":8083"))
 }
 
 
@@ -31,16 +32,15 @@ type App struct {
 	*fiber.App
 	Hasher hashing.Driver
 	//Session *session.Session
-	Config *configuration.Config
+	Config *config.Config
 }
 
 func InitApp() *App{
-	config:=configuration.New()
 	app := App{
-		App:     fiber.New(*config.GetFiberConfig()),
-		Hasher:  hashing.New(config.GetHasherConfig()),
-		//Session: session.New(config.GetSessionConfig()),
-		Config: config,
+		App:     fiber.New(*config.Conf.GetFiberConfig()),
+		Hasher:  hashing.New(config.Conf.GetHasherConfig()),
+		//Session: session.New(CONFIGFILE.GetSessionConfig()),
+		Config: config.Conf,
 	}
 	return &app
 }
