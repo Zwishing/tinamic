@@ -8,25 +8,23 @@ import (
 	hashing "github.com/thomasvvugt/fiber-hashing"
 	"tinamic/common/database"
 	"tinamic/config"
-	"tinamic/routers"
+	"tinamic/router"
 )
-
 
 func main() {
 
-	app:=InitApp()
+	app := InitApp()
 	app.Use(cors.New())
 	err := database.DbConnect(config.Conf.GetPgConfig())
-	if err!=nil {
+	if err != nil {
 		fmt.Println("failed to connect to database:", err.Error())
 	}
-	routers.SwaggerRoute(app.App)
+	router.SwaggerRoute(app.App)
 	api := app.Group("/api/v1")
-	routers.RegisterAPI(api)
+	router.RegisterAPI(api)
 
 	log.Fatal(app.Listen(":8083"))
 }
-
 
 type App struct {
 	*fiber.App
@@ -35,10 +33,10 @@ type App struct {
 	Config *config.Config
 }
 
-func InitApp() *App{
+func InitApp() *App {
 	app := App{
-		App:     fiber.New(*config.Conf.GetFiberConfig()),
-		Hasher:  hashing.New(config.Conf.GetHasherConfig()),
+		App:    fiber.New(*config.Conf.GetFiberConfig()),
+		Hasher: hashing.New(config.Conf.GetHasherConfig()),
 		//Session: session.New(CONFIGFILE.GetSessionConfig()),
 		Config: config.Conf,
 	}

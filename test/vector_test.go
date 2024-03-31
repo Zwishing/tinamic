@@ -3,15 +3,15 @@ package test
 import (
 	"fmt"
 	"testing"
-	"tinamic/app/queries"
+	"tinamic/model"
 )
 
 func TestQueryGeometryType(t *testing.T) {
-	gt := queries.QueryGeometryType(db, "geom")
+	gt := model.QueryGeometryType(db, "geom")
 	fmt.Println(gt)
 }
 
 func TestQueryBounds(t *testing.T) {
-	gt := queries.QueryBounds(db, "geom")
+	gt := model.QueryBounds(db, "geom")
 	fmt.Println(gt)
 }
