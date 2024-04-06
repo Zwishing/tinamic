@@ -1,10 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/log/logrusadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
@@ -19,25 +21,24 @@ import (
 
 	"github.com/alexedwards/argon2id"
 	"github.com/gofiber/fiber/v2"
-
 	//"github.com/gofiber/session/v2/provider/sqlite3"
 )
 
 type Config struct {
 	*viper.Viper
 	errorHandler fiber.ErrorHandler
-	fiber *fiber.Config
+	fiber        *fiber.Config
 }
 
 var (
 	Conf *Config //配置文件
 )
 
-func init(){
+func init() {
 	Conf = New()
 }
 
-var defaultErrorHandler = func (c *fiber.Ctx, err error) error {
+var defaultErrorHandler = func(c *fiber.Ctx, err error) error {
 	// Status code defaults to 500
 	code := fiber.StatusInternalServerError
 
@@ -57,7 +58,7 @@ var defaultErrorHandler = func (c *fiber.Ctx, err error) error {
 	c.Status(code)
 
 	// Render default error view
-	err = c.Render("errors/" + strconv.Itoa(code), fiber.Map{"message": message})
+	err = c.Render("errors/"+strconv.Itoa(code), fiber.Map{"message": message})
 	if err != nil {
 		return c.SendString(message)
 	}
@@ -65,24 +66,24 @@ var defaultErrorHandler = func (c *fiber.Ctx, err error) error {
 }
 
 func New() *Config {
-	config:=new(Config)
-	config.Viper=viper.New()
+	config := new(Config)
+	config.Viper = viper.New()
 	// Set default configurations
 	config.setDefaults()
 
 	// Select the .env file
 	//root,_:=os.Getwd()
-	config.AddConfigPath("./config")
+	config.AddConfigPath("./conf")
 	config.SetConfigName("tinamic")
 	config.SetConfigType("toml")
-
 
 	// Automatically refresh environment variables
 	config.AutomaticEnv()
 
 	// Read configuration
 	if err := config.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
 			fmt.Println("failed to read configuration:", err.Error())
 			os.Exit(1)
 		}
@@ -106,7 +107,7 @@ func (config *Config) SetErrorHandler(errorHandler fiber.ErrorHandler) {
 	config.errorHandler = errorHandler
 }
 
-func (config *Config) setDefaults()  {
+func (config *Config) setDefaults() {
 	// Set default database connect CONFIGFILE
 	config.SetDefault("DbConnection", "sslmode=disable")
 	// 1d, 1h, 1m, 1s, see https://golang.org/pkg/time/#ParseDuration
@@ -138,7 +139,7 @@ func (config *Config) setDefaults()  {
 	config.SetDefault("FIBER_IMMUTABLE", false)
 	config.SetDefault("FIBER_UNESCAPEPATH", false)
 	config.SetDefault("FIBER_ETAG", false)
-	config.SetDefault("FIBER_BODYLIMIT", 209715200)//200*1024*1024
+	config.SetDefault("FIBER_BODYLIMIT", 209715200) //200*1024*1024
 	config.SetDefault("FIBER_CONCURRENCY", 262144)
 	config.SetDefault("FIBER_VIEWS", "html")
 	config.SetDefault("FIBER_VIEWS_DIRECTORY", "resources/views")
@@ -309,7 +310,7 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //	}
 //}
 
-func (config *Config)GetPgConfig() *pgxpool.Config {
+func (config *Config) GetPgConfig() *pgxpool.Config {
 	dbConnection := config.GetString("DbConnection")
 	pgconfig, err := pgxpool.ParseConfig(dbConnection)
 	if err != nil {

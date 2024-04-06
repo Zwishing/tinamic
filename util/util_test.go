@@ -19,10 +19,11 @@ func TestExeCommand(t *testing.T) {
 }
 
 func TestDeCompress(t *testing.T) {
-	//err := DeCompress("D:\\Code\\go-web\\tinamic\\uplaod\\1212121.zip", "D:\\Code\\go-web\\tinamic\\uplaod")
-	//if err != nil {
-	//	return
-	//}
+	err, filename := Decompress("D:\\Code\\go-web\\tinamic\\data\\九段线.zip", "D:\\Code\\go-web\\tinamic\\data")
+	if err != nil {
+		return
+	}
+	fmt.Println(filename)
 }
 
 func TestGetDir(t *testing.T) {

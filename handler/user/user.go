@@ -2,7 +2,6 @@ package user
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofrs/uuid"
 	"time"
 	"tinamic/model"
 	user "tinamic/model/user"
@@ -47,13 +46,13 @@ func Register(ctx *fiber.Ctx) error {
 	if err != nil {
 		return response.Fail(ctx, "", err.Error())
 	}
-	v4, err := uuid.NewV4()
+	//v4, err := uuid.NewV4()
 	if err != nil {
 		return response.Fail(ctx, "", err.Error())
 	}
-	user.UID = v4
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
+	user.Id = 1
+	user.Created = time.Now()
+	user.Edited = time.Now()
 	tag, err := model.InsertUser(database.Db, user)
 	if err != nil {
 		return response.Fail(ctx, "", err.Error())
