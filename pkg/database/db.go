@@ -15,7 +15,7 @@ import (
 	"strings"
 
 	// Logging
-	log "github.com/sirupsen/logrus"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -23,43 +23,44 @@ var (
 )
 
 // DbConnect 连接数据库
-func DbConnect(config *pgxpool.Config) (err error){
+func DbConnect(config *pgxpool.Config) (err error) {
 	// Connect!
-	Db,err = pgxpool.ConnectConfig(context.Background(), config)
+	Db, err = pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msgf("%s", err)
 	}
 	dbName := config.ConnConfig.Config.Database
 	dbUser := config.ConnConfig.Config.User
 	dbHost := config.ConnConfig.Config.Host
-	log.Infof("Connected as '%s' to '%s' @ '%s'", dbUser, dbName, dbHost)
+	log.Info().Msgf("Connected as '%s' to '%s' @ '%s'", dbUser, dbName, dbHost)
 	return nil
 }
 
-//func DBTileRequest(ctx context.Context, tr *TileRequest) ([]byte, error) {
-//	db, err := DbConnect()
-//	if err != nil {
-//		log.Error(err)
-//		return nil, err
-//	}
-//	row := db.QueryRow(ctx, tr.SQL, tr.Args...)
-//	var mvtTile []byte
-//	err = row.Scan(&mvtTile)
-//	if err != nil {
-//		log.Warn(err)
+//	func DBTileRequest(ctx context.Context, tr *TileRequest) ([]byte, error) {
+//		db, err := DbConnect()
+//		if err != nil {
+//			log.Error(err)
+//			return nil, err
+//		}
+//		row := db.QueryRow(ctx, tr.SQL, tr.Args...)
+//		var mvtTile []byte
+//		err = row.Scan(&mvtTile)
+//		if err != nil {
+//			log.Warn(err)
 //
-//		// check for errors retrieving the rendered tile from the database
-//		// Timeout errors can occur if the context deadline is reached
-//		// or if the context is canceled during/before a database query.
-//		if pgconn.Timeout(err) {
+//			// check for errors retrieving the rendered tile from the database
+//			// Timeout errors can occur if the context deadline is reached
+//			// or if the context is canceled during/before a database query.
+//			if pgconn.Timeout(err) {
+//				return nil,err
+//			}
+//
 //			return nil,err
 //		}
-//
-//		return nil,err
+//		return mvtTile, nil
 //	}
-//	return mvtTile, nil
-//}
-//QueryVersion 获取postgis版本
+//
+// QueryVersion 获取postgis版本
 func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
 
 	row := db.QueryRow(context.Background(), "SELECT postgis_full_version()")
@@ -95,34 +96,33 @@ func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
 	return vers, PostGISVersion, nil
 }
 
-
-func Raster2pgsql()  {
+func Raster2pgsql() {
 }
 
-func Insert(schema,table string, source interface{}) (pgconn.CommandTag,error){
-	t:=reflect.TypeOf(source)
+func Insert(schema, table string, source interface{}) (pgconn.CommandTag, error) {
+	t := reflect.TypeOf(source)
 	var field strings.Builder
 	var value strings.Builder
 	var values []interface{}
-	if t.Kind()==reflect.Struct{
-		for index:=0;index<t.NumField();index++{
-			values=append(values,reflect.ValueOf(source).Field(index).Interface())
-			if index ==0{
+	if t.Kind() == reflect.Struct {
+		for index := 0; index < t.NumField(); index++ {
+			values = append(values, reflect.ValueOf(source).Field(index).Interface())
+			if index == 0 {
 				field.WriteString("(")
 				field.WriteString(t.Field(index).Tag.Get("json"))
 				field.WriteString(",")
 
 				value.WriteString("($")
-				value.WriteString(strconv.Itoa(index+1))
+				value.WriteString(strconv.Itoa(index + 1))
 				value.WriteString(",")
 				continue
 			}
-			if index==t.NumField()-1{
+			if index == t.NumField()-1 {
 				field.WriteString(t.Field(index).Tag.Get("json"))
 				field.WriteString(")")
 
 				value.WriteString("$")
-				value.WriteString(strconv.Itoa(index+1))
+				value.WriteString(strconv.Itoa(index + 1))
 				value.WriteString(")")
 				break
 			}
@@ -130,7 +130,7 @@ func Insert(schema,table string, source interface{}) (pgconn.CommandTag,error){
 			field.WriteString(",")
 
 			value.WriteString("$")
-			value.WriteString(strconv.Itoa(index+1))
+			value.WriteString(strconv.Itoa(index + 1))
 			value.WriteString(",")
 		}
 
@@ -142,30 +142,30 @@ func Insert(schema,table string, source interface{}) (pgconn.CommandTag,error){
 		sql.WriteString(field.String())
 		sql.WriteString("VALUES")
 		sql.WriteString(value.String())
-		sqlString:=sql.String()
+		sqlString := sql.String()
 
-		log.Info(sqlString)
+		log.Info().Msg(sqlString)
 
 		tag, err := Db.Exec(context.Background(), sqlString, values...)
 
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
-		return tag,nil
+		return tag, nil
 	}
 	return nil, errors.New("")
 }
 
-func Select(sql string,dest interface{}) {
+func Select(sql string, dest interface{}) {
 
-	pgxscan.Select(context.Background(), Db,&dest,sql)
+	pgxscan.Select(context.Background(), Db, &dest, sql)
 }
 
-func Create(schema,table string,source interface{})  {
-	t:=reflect.TypeOf(source)
-	if t.Kind()!=reflect.Struct{
+func Create(schema, table string, source interface{}) {
+	t := reflect.TypeOf(source)
+	if t.Kind() != reflect.Struct {
 		return
 	}
-	createSchemaSql:=fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`,schema)
+	createSchemaSql := fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, schema)
 	fmt.Println(createSchemaSql)
 }

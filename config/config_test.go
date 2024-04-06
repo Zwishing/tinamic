@@ -10,12 +10,12 @@ func TestNew(t *testing.T) {
 }
 
 func TestConfig_GetPgConfig(t *testing.T) {
-	Conf = New()
+	//Conf = New()
 	Conf.GetPgConfig()
 }
 
 func TestConfig_GetPgConnString(t *testing.T) {
-	Conf = New()
+	//Conf = New()
 	connString := Conf.GetPgConnString()
 	fmt.Println(connString)
 }

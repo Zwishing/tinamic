@@ -6,29 +6,27 @@ import (
 	hashing "github.com/thomasvvugt/fiber-hashing"
 	"tinamic/config"
 	"tinamic/pkg/database"
+	"tinamic/pkg/storage"
 )
 
 type App struct {
 	*fiber.App
 	Hasher hashing.Driver
 	//Session *session.Session
-	Config *config.Config
 }
 
 func InitApp() *App {
-	app := App{
-		App:    fiber.New(*config.Conf.GetFiberConfig()),
+	app := &App{
+		App:    fiber.New(),
 		Hasher: hashing.New(config.Conf.GetHasherConfig()),
 		//Session: session.New(CONFIGFILE.GetSessionConfig()),
-		Config: config.Conf,
 	}
-	err := app.Listen(string(config.Conf.GetInt32("server.port")))
-	if err != nil {
-		log.Fatal().Msgf("port is already in use %s", err)
-	}
+	// 初始化数据库
 	initPg()
+	// 初始化minio连接
+	initMinio()
 
-	return &app
+	return app
 }
 
 func initPg() {
@@ -36,4 +34,14 @@ func initPg() {
 	if err != nil {
 		log.Fatal().Msgf("connect postgresql failed %s", err)
 	}
+}
+
+func initMinio() {
+	cfg := config.Conf.GetMinioConfig()
+	minio, err := storage.New(cfg)
+	if err != nil {
+		log.Fatal().Msgf("connect minio failed %s", err)
+	}
+	storage.Minio = minio
+
 }

@@ -4,38 +4,41 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"log"
+	"io"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/rs/zerolog/log"
 	"github.com/valyala/bytebufferpool"
+	"tinamic/config"
+)
+
+var (
+	Minio *Storage
 )
 
 // Storage interface that is implemented by storage providers
 type Storage struct {
 	minio *minio.Client
-	cfg   Config
+	cfg   *config.MinioConfig
 	ctx   context.Context
 	mu    sync.Mutex
 }
 
 // New creates a new storage
-func New(config ...Config) *Storage {
-
-	// Set default config
-	cfg := configDefault(config...)
+func New(cfg *config.MinioConfig) (*Storage, error) {
 
 	// Minio instance
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.Credentials.AccessKeyID, cfg.Credentials.SecretAccessKey, cfg.Token),
+		Creds:  credentials.NewStaticV4(cfg.Credentials.AccessKey, cfg.Credentials.SecretKey, cfg.Token),
 		Secure: cfg.Secure,
 		Region: cfg.Region,
 	})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	storage := &Storage{minio: minioClient, cfg: cfg, ctx: context.Background()}
@@ -43,21 +46,12 @@ func New(config ...Config) *Storage {
 	// Reset all entries if set to true
 	if cfg.Reset {
 		if err = storage.Reset(); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
 
-	// check bucket
-	err = storage.CheckBucket()
-	if err != nil {
-		// create bucket
-		err = storage.CreateBucket()
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	return storage
+	log.Info().Msgf("Connected to minio @ '%s' bucket '%s'", cfg.Endpoint, cfg.Bucket)
+	return storage, nil
 }
 
 // Get value by key
@@ -128,7 +122,7 @@ func (s *Storage) Reset() error {
 		// List all objects from a bucket-name with a matching prefix.
 		for object := range s.minio.ListObjects(s.ctx, s.cfg.Bucket, s.cfg.ListObjectsOptions) {
 			if object.Err != nil {
-				log.Println(object.Err)
+				log.Error().Msgf("object %s", object.Err)
 			}
 			objectsCh <- object
 		}
@@ -139,7 +133,7 @@ func (s *Storage) Reset() error {
 	}
 
 	for err := range s.minio.RemoveObjects(s.ctx, s.cfg.Bucket, objectsCh, opts) {
-		log.Println("Error detected during deletion: ", err)
+		log.Error().Msgf("Error detected during deletion: %s", err)
 	}
 
 	return nil
@@ -174,29 +168,38 @@ func (s *Storage) Conn() *minio.Client {
 	return s.minio
 }
 
-func (s *Storage) PostPresignedUrl(ctx context.Context, bucketName, objectName string) (string, map[string]string, error) {
+func (s *Storage) Upload(bucketName, objectName string, reader io.Reader,
+	objectSize int64, opts minio.PutObjectOptions) (minio.UploadInfo, error) {
+	object, err := s.minio.PutObject(s.ctx, bucketName, objectName, reader, objectSize, opts)
+	if err != nil {
+		return minio.UploadInfo{}, err
+	}
+	return object, nil
+}
+func (s *Storage) PostPresignedUrl(bucketName, objectName string) (string, map[string]string, error) {
 	expiry := time.Second * 100
 
 	policy := minio.NewPostPolicy()
 	_ = policy.SetBucket(bucketName)
 	_ = policy.SetKey(objectName)
 	_ = policy.SetExpires(time.Now().UTC().Add(expiry))
+	policy.SetKey("zip")
 
-	presignedURL, formData, err := s.minio.PresignedPostPolicy(ctx, policy)
+	presignedURL, formData, err := s.minio.PresignedPostPolicy(s.ctx, policy)
 	if err != nil {
-		log.Fatalln(err)
+		log.Error().Msgf("%s", err)
 		return "", map[string]string{}, err
 	}
 
 	return presignedURL.String(), formData, nil
 }
 
-func (s *Storage) PutPresignedUrl(ctx context.Context, bucketName, objectName string) (string, error) {
+func (s *Storage) PutPresignedUrl(bucketName, objectName string) (string, error) {
 	expiry := time.Second * 100
 
-	presignedURL, err := s.minio.PresignedPutObject(ctx, bucketName, objectName, expiry)
+	presignedURL, err := s.minio.PresignedPutObject(s.ctx, bucketName, objectName, expiry)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal().Msgf("%s", err)
 		return "", err
 	}
 

@@ -14,6 +14,8 @@ func RegisterAPI(api fiber.Router) {
 	registerRasterServices(api)
 	registerData(api)
 	registerUsers(api)
+	registerUpload(api)
+
 }
 
 func registerMvtServices(api fiber.Router) {

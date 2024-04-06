@@ -1,11 +1,11 @@
-package storage
+package config
 
 import (
 	"github.com/minio/minio-go/v7"
 )
 
-// Config defines the config for storage.
-type Config struct {
+// MinioConfig defines the config for storage.
+type MinioConfig struct {
 	// Bucket
 	// Default fiber-bucket
 	Bucket string
@@ -49,40 +49,7 @@ type Config struct {
 
 type Credentials struct {
 	// AccessKeyID is like user-id that uniquely identifies your account.
-	AccessKeyID string
+	AccessKey string
 	// SecretAccessKey is the password to your account.
-	SecretAccessKey string
-}
-
-// ConfigDefault is the default config
-var ConfigDefault = Config{
-	Bucket:              "fiber-bucket",
-	Endpoint:            "",
-	Region:              "",
-	Token:               "",
-	Secure:              false,
-	Reset:               false,
-	Credentials:         Credentials{},
-	GetObjectOptions:    minio.GetObjectOptions{},
-	PutObjectOptions:    minio.PutObjectOptions{},
-	ListObjectsOptions:  minio.ListObjectsOptions{},
-	RemoveObjectOptions: minio.RemoveObjectOptions{},
-}
-
-// Helper function to set default values
-func configDefault(config ...Config) Config {
-	// Return default config if nothing provided
-	if len(config) < 1 {
-		return ConfigDefault
-	}
-
-	// Override default config
-	cfg := config[0]
-
-	// Set default values
-	if cfg.Bucket == "" {
-		cfg.Bucket = ConfigDefault.Bucket
-	}
-
-	return cfg
+	SecretKey string
 }

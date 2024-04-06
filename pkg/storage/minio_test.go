@@ -1,33 +1,22 @@
 package storage
 
 import (
-	"os"
+	"fmt"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"tinamic/config"
 )
 
 var testStore *Storage
 
-func TestMain(m *testing.M) {
-	testStore = New(
-		Config{
-			Bucket:   "fiber-bucket",
-			Endpoint: "localhost:9000",
-			Credentials: Credentials{
-				AccessKeyID:     "minio-user",
-				SecretAccessKey: "minio-password",
-			},
-			Reset: true,
-		},
-	)
-
-	code := m.Run()
-
-	_ = testStore.Close()
-	os.Exit(code)
+func TestNew(m *testing.T) {
+	//Conf := config.New()-er
+	cfg := config.Conf.GetMinioConfig()
+	st := New(cfg)
+	fmt.Println(st)
 }
 
 func Test_Get(t *testing.T) {

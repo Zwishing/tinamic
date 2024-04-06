@@ -23,12 +23,18 @@ import (
 
 type Config struct {
 	*viper.Viper
-	fiber *fiber.Config
+	fiber *FiberConfig
+	minio *MinioConfig
+	pg    *PgConfig
 }
 
 var (
 	Conf *Config //配置文件
 )
+
+func init() {
+	Conf = New()
+}
 
 func New() *Config {
 	config := new(Config)
@@ -38,6 +44,7 @@ func New() *Config {
 
 	config.AddConfigPath("./conf")
 	config.AddConfigPath("../conf")
+	config.AddConfigPath("../../conf")
 	config.SetConfigName("tinamic")
 	config.SetConfigType("toml")
 
@@ -57,9 +64,9 @@ func New() *Config {
 	// TODO: Add APP_KEY generation
 
 	// TODO: Write changes to configuration file
-
-	// Set Fiber configurations
 	config.setFiberConfig()
+
+	config.setMinioConfig()
 
 	return config
 }
@@ -67,89 +74,6 @@ func New() *Config {
 //func (config *Config) SetErrorHandler(errorHandler fiber.ErrorHandler) {
 //	config.errorHandler = errorHandler
 //}
-
-func (config *Config) setDefaults() {
-	// 1d, 1h, 1m, 1s, see https://golang.org/pkg/time/#ParseDuration
-	config.SetDefault("poolMaxConnLifeTime", "1h")
-	config.SetDefault("poolMaxConns", 4)
-	config.SetDefault("timeout", 10)
-
-	// Set default Fiber configuration
-	config.SetDefault("FIBER_PREFORK", false)
-	config.SetDefault("FIBER_SERVERHEADER", "")
-	config.SetDefault("FIBER_STRICTROUTING", false)
-	config.SetDefault("FIBER_CASESENSITIVE", false)
-	config.SetDefault("FIBER_IMMUTABLE", false)
-	config.SetDefault("FIBER_UNESCAPEPATH", false)
-	config.SetDefault("FIBER_ETAG", false)
-	config.SetDefault("FIBER_BODYLIMIT", 209715200) //200*1024*1024
-	config.SetDefault("FIBER_CONCURRENCY", 262144)
-	config.SetDefault("FIBER_VIEWS", "html")
-	config.SetDefault("FIBER_VIEWS_DIRECTORY", "resources/views")
-	config.SetDefault("FIBER_VIEWS_RELOAD", false)
-	config.SetDefault("FIBER_VIEWS_DEBUG", false)
-	config.SetDefault("FIBER_VIEWS_LAYOUT", "embed")
-	config.SetDefault("FIBER_VIEWS_DELIMS_L", "{{")
-	config.SetDefault("FIBER_VIEWS_DELIMS_R", "}}")
-	config.SetDefault("FIBER_READTIMEOUT", 0)
-	config.SetDefault("FIBER_WRITETIMEOUT", 0)
-	config.SetDefault("FIBER_IDLETIMEOUT", 0)
-	config.SetDefault("FIBER_READBUFFERSIZE", 4096)
-	config.SetDefault("FIBER_WRITEBUFFERSIZE", 4096)
-	config.SetDefault("FIBER_COMPRESSEDFILESUFFIX", ".fiber.gz")
-	config.SetDefault("FIBER_PROXYHEADER", "")
-	config.SetDefault("FIBER_GETONLY", false)
-	config.SetDefault("FIBER_DISABLEKEEPALIVE", false)
-	config.SetDefault("FIBER_DISABLEDEFAULTDATE", false)
-	config.SetDefault("FIBER_DISABLEDEFAULTCONTENTTYPE", false)
-	config.SetDefault("FIBER_DISABLEHEADERNORMALIZING", false)
-	config.SetDefault("FIBER_DISABLESTARTUPMESSAGE", false)
-	config.SetDefault("FIBER_REDUCEMEMORYUSAGE", false)
-
-	// Set default Fiber CORS middlewares configuration
-	config.SetDefault("MW_FIBER_CORS_ENABLED", false)
-	config.SetDefault("MW_FIBER_CORS_ALLOWORIGINS", "*")
-	config.SetDefault("MW_FIBER_CORS_ALLOWMETHODS", "GET,POST,HEAD,PUT,DELETE,PATCH")
-	config.SetDefault("MW_FIBER_CORS_ALLOWHEADERS", "")
-	config.SetDefault("MW_FIBER_CORS_ALLOWCREDENTIALS", false)
-	config.SetDefault("MW_FIBER_CORS_EXPOSEHEADERS", "")
-	config.SetDefault("MW_FIBER_CORS_MAXAGE", 0)
-
-}
-
-func (config *Config) setFiberConfig() {
-	config.fiber = &fiber.Config{
-		Prefork:              config.GetBool("FIBER_PREFORK"),
-		ServerHeader:         config.GetString("FIBER_SERVERHEADER"),
-		StrictRouting:        config.GetBool("FIBER_STRICTROUTING"),
-		CaseSensitive:        config.GetBool("FIBER_CASESENSITIVE"),
-		Immutable:            config.GetBool("FIBER_IMMUTABLE"),
-		UnescapePath:         config.GetBool("FIBER_UNESCAPEPATH"),
-		ETag:                 config.GetBool("FIBER_ETAG"),
-		BodyLimit:            config.GetInt("FIBER_BODYLIMIT"),
-		Concurrency:          config.GetInt("FIBER_CONCURRENCY"),
-		Views:                nil,
-		ReadTimeout:          config.GetDuration("FIBER_READTIMEOUT"),
-		WriteTimeout:         config.GetDuration("FIBER_WRITETIMEOUT"),
-		IdleTimeout:          config.GetDuration("FIBER_IDLETIMEOUT"),
-		ReadBufferSize:       config.GetInt("FIBER_READBUFFERSIZE"),
-		WriteBufferSize:      config.GetInt("FIBER_WRITEBUFFERSIZE"),
-		CompressedFileSuffix: config.GetString("FIBER_COMPRESSEDFILESUFFIX"),
-		ProxyHeader:          config.GetString("FIBER_PROXYHEADER"),
-		GETOnly:              config.GetBool("FIBER_GETONLY"),
-		//ErrorHandler:              config.errorHandler,
-		DisableKeepalive:          config.GetBool("FIBER_DISABLEKEEPALIVE"),
-		DisableDefaultDate:        config.GetBool("FIBER_DISABLEDEFAULTDATE"),
-		DisableDefaultContentType: config.GetBool("FIBER_DISABLEDEFAULTCONTENTTYPE"),
-		DisableHeaderNormalizing:  config.GetBool("FIBER_DISABLEHEADERNORMALIZING"),
-		DisableStartupMessage:     config.GetBool("FIBER_DISABLESTARTUPMESSAGE"),
-		ReduceMemoryUsage:         config.GetBool("FIBER_REDUCEMEMORYUSAGE"),
-	}
-}
-
-func (config *Config) GetFiberConfig() *fiber.Config {
-	return config.fiber
-}
 
 func (config *Config) GetHasherConfig() hashing.Config {
 	if strings.ToLower(config.GetString("HASHER_DRIVER")) == "bcrypt" {
@@ -167,6 +91,33 @@ func (config *Config) GetHasherConfig() hashing.Config {
 					SaltLength:  config.GetUint32("HASHER_SALTLENGTH"),
 					KeyLength:   config.GetUint32("HASHER_KEYLENGTH"),
 				}})}
+	}
+}
+
+func (config *Config) GetFiberConfig() *fiber.Config {
+	return config.fiber.Config
+}
+
+func (config *Config) setFiberConfig() {
+	config.fiber = &FiberConfig{}
+}
+
+func (config *Config) GetMinioConfig() *MinioConfig {
+	return config.minio
+}
+
+func (config *Config) setMinioConfig() {
+	config.minio = &MinioConfig{
+		Bucket:   config.GetString("storage.minio.bucket"),
+		Endpoint: config.GetString("storage.minio.endpoint"),
+		Region:   config.GetString("storage.minio.region"),
+		Token:    config.GetString("storage.minio.token"),
+		Secure:   config.GetBool("storage.minio.secure"),
+		Reset:    config.GetBool("storage.minio.reset"),
+		Credentials: Credentials{
+			AccessKey: config.GetString("storage.minio.accessKey"),
+			SecretKey: config.GetString("storage.minio.secretKey"),
+		},
 	}
 }
 
@@ -279,7 +230,7 @@ func (config *Config) GetPgConfig() *pgxpool.Config {
 	return pgconfig
 }
 
-// postgres://jack:secret@pg.example.com:5432/mydb?sslmode=verify-ca&pool_max_conns=10
+// GetPgConnString postgres://jack:secret@pg.example.com:5432/mydb?sslmode=verify-ca&pool_max_conns=10
 func (config *Config) GetPgConnString() string {
 	return fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
 		config.GetString("database.postgresql.user"),
@@ -288,4 +239,8 @@ func (config *Config) GetPgConnString() string {
 		config.GetInt32("database.postgresql.port"),
 		config.GetString("database.postgresql.database"),
 		config.GetString("database.postgresql.sslmode"))
+}
+
+func (config *Config) errorHandler(ctx *fiber.Ctx, err error) error {
+	return nil
 }

@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"tinamic/model"
+	"tinamic/util"
+
 	//"tinamic/pkg/"
 	"tinamic/util/response"
 )
@@ -166,7 +168,7 @@ func RecordFile(fp string) error {
 	if strings.HasSuffix(fp, string(geojson)) {
 		sd.FileType = string(geojson)
 	} else if strings.HasSuffix(fp, string(zipShp)) {
-		err, names := utils.Decompress(fp, uploadPath)
+		err, names := util.Decompress(fp, uploadPath)
 		if err != nil {
 			return err
 		}
