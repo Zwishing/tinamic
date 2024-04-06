@@ -5,8 +5,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"golang.org/x/net/context"
 	"strings"
-	"tinamic/common/database"
-	"tinamic/common/utils"
+	"tinamic/pkg/database"
+	"tinamic/util"
 )
 
 func QueryGeometryColumn(db *pgxpool.Pool) {
@@ -45,5 +45,5 @@ func QueryBounds(geometryColumn string) [4]float64 {
 	if err != nil {
 		return [4]float64{}
 	}
-	return utils.BoxStringToArray(bounds)
+	return util.BoxStringToArray(bounds)
 }

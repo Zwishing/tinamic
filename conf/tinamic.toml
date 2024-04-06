@@ -1,44 +1,47 @@
 # Tinamic配置文件
 [project]
-Title = "Tinamic"
-Author = "Zwishing"
+    Title = "Tinamic"
+    Author = "Zwishing"
 
 [server]
-
+    port = 8300
+    name = "Tinamic"
 
 [database]
-[database.postgres]
-#DbConnection = "postgresql://postgres:admin@localhost/postgres"
-host="127.0.0.1"
-port=5432
-database="postgres"
-user="postgres"
-password="admin"
-poolMaxConnLifeTime="1h" # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
-poolMaxConns=4
+    [database.postgresql]
+        #DbConnection = "postgresql://postgres:admin@localhost/postgres"
+        host="39.101.164.253"
+        port=5432
+        database="postgres"
+        user="postgres"
+        password="admin"
+        poolMaxConnLifeTime="1h" # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
+        poolMaxConns=4
+        timeout=10
+        sslmode="disable"
 
-[database.mongodb]
-host="127.0.0.1"
-port=27017
-database="mongodb"
-user="postgres"
-password="admin"
-collection=""
+    [database.mongodb]
+        host="127.0.0.1"
+        port=27017
+        database="mongodb"
+        user="postgres"
+        password="admin"
+        collection=""
 
-[database.redis]
-host="127.0.0.1"
-port=6379
-database=0
-user="postgres"
-password="admin"
-poolMaxConns=10 # socket 连接最大数
+    [database.redis]
+        host="127.0.0.1"
+        port=6379
+        database=0
+        user="postgres"
+        password="admin"
+        poolMaxConns=10 # socket 连接最大数
 
 [storage]
-[storage.minio]
-endpoint=""
-port=9001
-bucket=""
-accessKeyID=""
-secretAccessKey=""
+    [storage.minio]
+        endpoint=""
+        port=9001
+        bucket=""
+        accessKeyID=""
+        secretAccessKey=""
 
 

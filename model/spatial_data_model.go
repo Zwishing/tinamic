@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"tinamic/common/utils"
+	"tinamic/util"
 )
 
 type SpatialData struct {
@@ -24,7 +24,7 @@ func NewSpatialData(fp string) *SpatialData {
 	sd := new(SpatialData)
 	uid, _ := uuid.NewV4()
 	sd.Uid = uid
-	sd.Name = strings.Split(utils.GetFileName(fp), ".")[0]
+	sd.Name = strings.Split(util.GetFileName(fp), ".")[0]
 	stat, err := os.Stat(fp)
 	if err != nil {
 		return nil

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgconn"
-	"tinamic/common/database"
+	"tinamic/pkg/database"
 )
 
 func InsertSpatialData(data *SpatialData) (pgconn.CommandTag, error) {

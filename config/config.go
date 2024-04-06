@@ -3,13 +3,10 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/log/logrusadapter"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	"os"
-	"strconv"
+
+	"github.com/rs/zerolog/log"
 	"strings"
 	"time"
 
@@ -26,70 +23,34 @@ import (
 
 type Config struct {
 	*viper.Viper
-	errorHandler fiber.ErrorHandler
-	fiber        *fiber.Config
+	fiber *fiber.Config
 }
 
 var (
 	Conf *Config //配置文件
 )
 
-func init() {
-	Conf = New()
-}
-
-var defaultErrorHandler = func(c *fiber.Ctx, err error) error {
-	// Status code defaults to 500
-	code := fiber.StatusInternalServerError
-
-	// Set error message
-	message := err.Error()
-
-	// Check if it's a fiber.Error type
-	if e, ok := err.(*fiber.Error); ok {
-		code = e.Code
-		message = e.Message
-	}
-
-	// TODO: Check return type for the client, JSON, HTML, YAML or any other (API vs web)
-
-	// Return HTTP response
-	c.Set(fiber.HeaderContentType, fiber.MIMETextPlainCharsetUTF8)
-	c.Status(code)
-
-	// Render default error view
-	err = c.Render("errors/"+strconv.Itoa(code), fiber.Map{"message": message})
-	if err != nil {
-		return c.SendString(message)
-	}
-	return err
-}
-
 func New() *Config {
 	config := new(Config)
 	config.Viper = viper.New()
 	// Set default configurations
-	config.setDefaults()
+	//config.setDefaults()
 
-	// Select the .env file
-	//root,_:=os.Getwd()
 	config.AddConfigPath("./conf")
+	config.AddConfigPath("../conf")
 	config.SetConfigName("tinamic")
 	config.SetConfigType("toml")
-
-	// Automatically refresh environment variables
-	config.AutomaticEnv()
 
 	// Read configuration
 	if err := config.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
-			fmt.Println("failed to read configuration:", err.Error())
+			log.Error().Msgf("failed to read configuration:%s", err.Error())
 			os.Exit(1)
 		}
 	}
 
-	config.SetErrorHandler(defaultErrorHandler)
+	//config.SetErrorHandler(defaultErrorHandler)
 
 	// TODO: Logger (Maybe a different zap object)
 
@@ -103,33 +64,15 @@ func New() *Config {
 	return config
 }
 
-func (config *Config) SetErrorHandler(errorHandler fiber.ErrorHandler) {
-	config.errorHandler = errorHandler
-}
+//func (config *Config) SetErrorHandler(errorHandler fiber.ErrorHandler) {
+//	config.errorHandler = errorHandler
+//}
 
 func (config *Config) setDefaults() {
-	// Set default database connect CONFIGFILE
-	config.SetDefault("DbConnection", "sslmode=disable")
 	// 1d, 1h, 1m, 1s, see https://golang.org/pkg/time/#ParseDuration
-	config.SetDefault("DbPoolMaxConnLifeTime", "1h")
-	config.SetDefault("DbPoolMaxConns", 4)
-	config.SetDefault("DbTimeout", 10)
-	config.SetDefault("CORSOrigins", []string{"*"})
-
-	// Set default tile server CONFIGFILE
-	config.SetDefault("DefaultResolution", 4096)
-	config.SetDefault("DefaultBuffer", 256)
-	config.SetDefault("MaxFeaturesPerTile", 10000)
-	config.SetDefault("DefaultMinZoom", 0)
-	config.SetDefault("DefaultMaxZoom", 22)
-
-	// Set default SRID
-	config.SetDefault("CoordinateSystem.SRID", 3857)
-	// XMin, YMin, XMax, YMax, must be square
-	config.SetDefault("CoordinateSystem.Xmin", -20037508.3427892)
-	config.SetDefault("CoordinateSystem.Ymin", -20037508.3427892)
-	config.SetDefault("CoordinateSystem.Xmax", 20037508.3427892)
-	config.SetDefault("CoordinateSystem.Ymax", 20037508.3427892)
+	config.SetDefault("poolMaxConnLifeTime", "1h")
+	config.SetDefault("poolMaxConns", 4)
+	config.SetDefault("timeout", 10)
 
 	// Set default Fiber configuration
 	config.SetDefault("FIBER_PREFORK", false)
@@ -176,25 +119,25 @@ func (config *Config) setDefaults() {
 
 func (config *Config) setFiberConfig() {
 	config.fiber = &fiber.Config{
-		Prefork:                   config.GetBool("FIBER_PREFORK"),
-		ServerHeader:              config.GetString("FIBER_SERVERHEADER"),
-		StrictRouting:             config.GetBool("FIBER_STRICTROUTING"),
-		CaseSensitive:             config.GetBool("FIBER_CASESENSITIVE"),
-		Immutable:                 config.GetBool("FIBER_IMMUTABLE"),
-		UnescapePath:              config.GetBool("FIBER_UNESCAPEPATH"),
-		ETag:                      config.GetBool("FIBER_ETAG"),
-		BodyLimit:                 config.GetInt("FIBER_BODYLIMIT"),
-		Concurrency:               config.GetInt("FIBER_CONCURRENCY"),
-		Views:                     nil,
-		ReadTimeout:               config.GetDuration("FIBER_READTIMEOUT"),
-		WriteTimeout:              config.GetDuration("FIBER_WRITETIMEOUT"),
-		IdleTimeout:               config.GetDuration("FIBER_IDLETIMEOUT"),
-		ReadBufferSize:            config.GetInt("FIBER_READBUFFERSIZE"),
-		WriteBufferSize:           config.GetInt("FIBER_WRITEBUFFERSIZE"),
-		CompressedFileSuffix:      config.GetString("FIBER_COMPRESSEDFILESUFFIX"),
-		ProxyHeader:               config.GetString("FIBER_PROXYHEADER"),
-		GETOnly:                   config.GetBool("FIBER_GETONLY"),
-		ErrorHandler:              config.errorHandler,
+		Prefork:              config.GetBool("FIBER_PREFORK"),
+		ServerHeader:         config.GetString("FIBER_SERVERHEADER"),
+		StrictRouting:        config.GetBool("FIBER_STRICTROUTING"),
+		CaseSensitive:        config.GetBool("FIBER_CASESENSITIVE"),
+		Immutable:            config.GetBool("FIBER_IMMUTABLE"),
+		UnescapePath:         config.GetBool("FIBER_UNESCAPEPATH"),
+		ETag:                 config.GetBool("FIBER_ETAG"),
+		BodyLimit:            config.GetInt("FIBER_BODYLIMIT"),
+		Concurrency:          config.GetInt("FIBER_CONCURRENCY"),
+		Views:                nil,
+		ReadTimeout:          config.GetDuration("FIBER_READTIMEOUT"),
+		WriteTimeout:         config.GetDuration("FIBER_WRITETIMEOUT"),
+		IdleTimeout:          config.GetDuration("FIBER_IDLETIMEOUT"),
+		ReadBufferSize:       config.GetInt("FIBER_READBUFFERSIZE"),
+		WriteBufferSize:      config.GetInt("FIBER_WRITEBUFFERSIZE"),
+		CompressedFileSuffix: config.GetString("FIBER_COMPRESSEDFILESUFFIX"),
+		ProxyHeader:          config.GetString("FIBER_PROXYHEADER"),
+		GETOnly:              config.GetBool("FIBER_GETONLY"),
+		//ErrorHandler:              config.errorHandler,
 		DisableKeepalive:          config.GetBool("FIBER_DISABLEKEEPALIVE"),
 		DisableDefaultDate:        config.GetBool("FIBER_DISABLEDEFAULTDATE"),
 		DisableDefaultContentType: config.GetBool("FIBER_DISABLEDEFAULTCONTENTTYPE"),
@@ -311,27 +254,38 @@ func (config *Config) GetHasherConfig() hashing.Config {
 //}
 
 func (config *Config) GetPgConfig() *pgxpool.Config {
-	dbConnection := config.GetString("DbConnection")
-	pgconfig, err := pgxpool.ParseConfig(dbConnection)
+	connString := config.GetPgConnString()
+	pgconfig, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Msgf("postgresql config is fail %s", err)
 	}
-	dbPoolMaxLifeTime, errt := time.ParseDuration(config.GetString("DbPoolMaxConnLifeTime"))
+	dbPoolMaxLifeTime, errt := time.ParseDuration(config.GetString("database.postgresql.poolMaxConnLifeTime"))
 	if errt != nil {
-		log.Fatal(errt)
+		log.Fatal().Msgf("postgresql poolMaxConnLifeTime  error %s", errt)
 	}
 
 	pgconfig.MaxConnLifetime = dbPoolMaxLifeTime
-	dbPoolMaxConns := config.GetInt32("DbPoolMaxConns")
+	dbPoolMaxConns := config.GetInt32("database.postgresql.poolMaxConns")
 	if dbPoolMaxConns > 0 {
 		pgconfig.MaxConns = dbPoolMaxConns
 	}
 
 	// Read current log level and use one less-fine level
 	// below that
-	pgconfig.ConnConfig.Logger = logrusadapter.NewLogger(log.New())
-	levelString, _ := (log.GetLevel() - 1).MarshalText()
-	pgxLevel, _ := pgx.LogLevelFromString(string(levelString))
-	pgconfig.ConnConfig.LogLevel = pgxLevel
+	//pgconfig.ConnConfig.Logger = zerolog.New()
+	//levelString, _ := (log.GetLevel() - 1).MarshalText()
+	//pgxLevel, _ := pgx.LogLevelFromString(string(levelString))
+	//pgconfig.ConnConfig.LogLevel = pgxLevel
 	return pgconfig
+}
+
+// postgres://jack:secret@pg.example.com:5432/mydb?sslmode=verify-ca&pool_max_conns=10
+func (config *Config) GetPgConnString() string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+		config.GetString("database.postgresql.user"),
+		config.GetString("database.postgresql.password"),
+		config.GetString("database.postgresql.host"),
+		config.GetInt32("database.postgresql.port"),
+		config.GetString("database.postgresql.database"),
+		config.GetString("database.postgresql.sslmode"))
 }
