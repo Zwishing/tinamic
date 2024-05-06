@@ -1,4 +1,4 @@
-package user
+package model
 
 // SignUp struct to describe register a new user.
 type SignUp struct {

@@ -1,6 +1,8 @@
-package user
+package model
 
-import "tinamic/util"
+import (
+	"tinamic/util"
+)
 
 type AccountCategory = int
 

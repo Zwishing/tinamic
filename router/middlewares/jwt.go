@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"strconv"
 	"time"
-	"tinamic/model/user"
+	"tinamic/model"
 )
 
 var jwtKey = []byte("a_secret_crect")
@@ -16,7 +16,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func ReleaseToken(user user.User) (string, error) {
+func ReleaseToken(user model.User) (string, error) {
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 

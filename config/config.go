@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 
 	"github.com/rs/zerolog/log"

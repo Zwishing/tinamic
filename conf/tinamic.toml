@@ -10,11 +10,13 @@
 [database]
     [database.postgresql]
         #DbConnection = "postgresql://postgres:admin@localhost/postgres"
-        host="1.92.113.25"
-        port=5432
-        database="postgres"
+#        host="1.92.113.25"
+        host="localhost"
+#        port=5432
+        port=5433
+        database="tinamic"
         user="postgres"
-        password="admin321"
+        password="admin"
         poolMaxConnLifeTime="1h" # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
         poolMaxConns=4
         timeout=10

@@ -1,14 +1,11 @@
 package database
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"github.com/georgysavva/scany/pgxscan"
-	"github.com/jackc/pgconn"
 	"reflect"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
@@ -25,7 +22,7 @@ var (
 // DbConnect 连接数据库
 func DbConnect(config *pgxpool.Config) (err error) {
 	// Connect!
-	Db, err = pgxpool.ConnectConfig(context.Background(), config)
+	Db, err = pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		log.Fatal().Msgf("%s", err)
 	}
@@ -99,67 +96,66 @@ func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
 func Raster2pgsql() {
 }
 
-func Insert(schema, table string, source interface{}) (pgconn.CommandTag, error) {
-	t := reflect.TypeOf(source)
-	var field strings.Builder
-	var value strings.Builder
-	var values []interface{}
-	if t.Kind() == reflect.Struct {
-		for index := 0; index < t.NumField(); index++ {
-			values = append(values, reflect.ValueOf(source).Field(index).Interface())
-			if index == 0 {
-				field.WriteString("(")
-				field.WriteString(t.Field(index).Tag.Get("json"))
-				field.WriteString(",")
+//func Insert(schema, table string, source interface{}) (pgconn.CommandTag, error) {
+//	t := reflect.TypeOf(source)
+//	var field strings.Builder
+//	var value strings.Builder
+//	var values []interface{}
+//	if t.Kind() == reflect.Struct {
+//		for index := 0; index < t.NumField(); index++ {
+//			values = append(values, reflect.ValueOf(source).Field(index).Interface())
+//			if index == 0 {
+//				field.WriteString("(")
+//				field.WriteString(t.Field(index).Tag.Get("json"))
+//				field.WriteString(",")
+//
+//				value.WriteString("($")
+//				value.WriteString(strconv.Itoa(index + 1))
+//				value.WriteString(",")
+//				continue
+//			}
+//			if index == t.NumField()-1 {
+//				field.WriteString(t.Field(index).Tag.Get("json"))
+//				field.WriteString(")")
+//
+//				value.WriteString("$")
+//				value.WriteString(strconv.Itoa(index + 1))
+//				value.WriteString(")")
+//				break
+//			}
+//			field.WriteString(t.Field(index).Tag.Get("json"))
+//			field.WriteString(",")
+//
+//			value.WriteString("$")
+//			value.WriteString(strconv.Itoa(index + 1))
+//			value.WriteString(",")
+//		}
+//
+//		var sql bytes.Buffer
+//		sql.WriteString("INSERT INTO ")
+//		sql.WriteString(schema)
+//		sql.WriteString(".")
+//		sql.WriteString(table)
+//		sql.WriteString(field.String())
+//		sql.WriteString("VALUES")
+//		sql.WriteString(value.String())
+//		sqlString := sql.String()
+//
+//		log.Info().Msg(sqlString)
+//
+//		tag, err := Db.Exec(context.Background(), sqlString, values...)
+//
+//		if err != nil {
+//			return nil, err
+//		}
+//		return tag, nil
+//	}
+//	return nil, errors.New("")
+//}
 
-				value.WriteString("($")
-				value.WriteString(strconv.Itoa(index + 1))
-				value.WriteString(",")
-				continue
-			}
-			if index == t.NumField()-1 {
-				field.WriteString(t.Field(index).Tag.Get("json"))
-				field.WriteString(")")
-
-				value.WriteString("$")
-				value.WriteString(strconv.Itoa(index + 1))
-				value.WriteString(")")
-				break
-			}
-			field.WriteString(t.Field(index).Tag.Get("json"))
-			field.WriteString(",")
-
-			value.WriteString("$")
-			value.WriteString(strconv.Itoa(index + 1))
-			value.WriteString(",")
-		}
-
-		var sql bytes.Buffer
-		sql.WriteString("INSERT INTO ")
-		sql.WriteString(schema)
-		sql.WriteString(".")
-		sql.WriteString(table)
-		sql.WriteString(field.String())
-		sql.WriteString("VALUES")
-		sql.WriteString(value.String())
-		sqlString := sql.String()
-
-		log.Info().Msg(sqlString)
-
-		tag, err := Db.Exec(context.Background(), sqlString, values...)
-
-		if err != nil {
-			return nil, err
-		}
-		return tag, nil
-	}
-	return nil, errors.New("")
-}
-
-func Select(sql string, dest interface{}) {
-
-	pgxscan.Select(context.Background(), Db, &dest, sql)
-}
+//func Select(sql string, dest interface{}) {
+//	pgxscan.Select(context.Background(), Db, &dest, sql)
+//}
 
 func Create(schema, table string, source interface{}) {
 	t := reflect.TypeOf(source)

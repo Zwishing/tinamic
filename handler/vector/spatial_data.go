@@ -3,16 +3,8 @@ package vector
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
-	"github.com/pkg/errors"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
-	"tinamic/model"
-	"tinamic/util"
-
-	//"tinamic/pkg/"
-	"tinamic/util/response"
 )
 
 type SupportType string
@@ -35,28 +27,28 @@ const (
 )
 
 // Upload 上传数据
-func Upload(ctx *fiber.Ctx) error {
-	file, err := ctx.FormFile(uplaodField)
-	if err != nil {
-		return err
-	}
-	if !IsSupport(file.Filename, string(geojson), string(zipShp)) {
-		err = response.Fail(ctx, "", "数据格式不支持！")
-		if err != nil {
-			return err
-		}
-	}
-	fp := filepath.Join(uploadPath, file.Filename)
-	err = ctx.SaveFile(file, fp)
-	if err != nil {
-		return err
-	}
-	err = RecordFile(fp)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+//func Upload(ctx *fiber.Ctx) error {
+//	file, err := ctx.FormFile(uplaodField)
+//	if err != nil {
+//		return err
+//	}
+//	if !IsSupport(file.Filename, string(geojson), string(zipShp)) {
+//		err = response.Fail(ctx, "", "数据格式不支持！")
+//		if err != nil {
+//			return err
+//		}
+//	}
+//	fp := filepath.Join(uploadPath, file.Filename)
+//	err = ctx.SaveFile(file, fp)
+//	if err != nil {
+//		return err
+//	}
+//	err = RecordFile(fp)
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
 //func save2database(fp string) {
 //	fileList,err:= utils.SearchFile(fp)
@@ -136,18 +128,18 @@ func Publish(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func QuerySpatialData(ctx *fiber.Ctx) error {
-	data, err := model.QuerySpatialData()
-	if err != nil {
-		return err
-	}
-	err = response.Success(ctx, &data, "数据查询成功！")
-	if err != nil {
-		err = response.Fail(ctx, "", "数据查询失败！")
-		return err
-	}
-	return nil
-}
+//func QuerySpatialData(ctx *fiber.Ctx) error {
+//	data, err := model.QuerySpatialData()
+//	if err != nil {
+//		return err
+//	}
+//	err = response.Success(ctx, &data, "数据查询成功！")
+//	if err != nil {
+//		err = response.Fail(ctx, "", "数据查询失败！")
+//		return err
+//	}
+//	return nil
+//}
 
 func Delete() {
 
@@ -163,37 +155,37 @@ func IsSupport(file string, suffixes ...string) bool {
 	return false
 }
 
-func RecordFile(fp string) error {
-	sd := model.NewSpatialData(fp)
-	if strings.HasSuffix(fp, string(geojson)) {
-		sd.FileType = string(geojson)
-	} else if strings.HasSuffix(fp, string(zipShp)) {
-		err, names := util.Decompress(fp, uploadPath)
-		if err != nil {
-			return err
-		}
-		// 删除压缩包
-		err = os.Remove(fp)
-		if err != nil {
-			return err
-		}
-		for _, name := range names {
-			if strings.HasSuffix(name, string(shp)) {
-				sd.Name = strings.Split(name, ".")[0]
-				sd.FileType = string(shp)
-				break
-			}
-		}
-		if sd.FileType == "" {
-			return errors.New("no shapefile in zip")
-		}
-	}
-	_, err := model.InsertSpatialData(sd)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+//func RecordFile(fp string) error {
+//	sd := model.NewSpatialData(fp)
+//	if strings.HasSuffix(fp, string(geojson)) {
+//		sd.FileType = string(geojson)
+//	} else if strings.HasSuffix(fp, string(zipShp)) {
+//		err, names := util.Decompress(fp, uploadPath)
+//		if err != nil {
+//			return err
+//		}
+//		// 删除压缩包
+//		err = os.Remove(fp)
+//		if err != nil {
+//			return err
+//		}
+//		for _, name := range names {
+//			if strings.HasSuffix(name, string(shp)) {
+//				sd.Name = strings.Split(name, ".")[0]
+//				sd.FileType = string(shp)
+//				break
+//			}
+//		}
+//		if sd.FileType == "" {
+//			return errors.New("no shapefile in zip")
+//		}
+//	}
+//	_, err := model.InsertSpatialData(sd)
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
 func SearchFile(fp string) {
 	ioutil.ReadDir(fp)
