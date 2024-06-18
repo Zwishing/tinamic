@@ -188,7 +188,7 @@ func Decompress(zipFile, destDir string) (error, []string) {
 			//如果标致位是0  则是默认的本地编码   默认为gbk
 			i := bytes.NewReader([]byte(innerFile.Name))
 			decoder := transform.NewReader(i, simplifiedchinese.GB18030.NewDecoder())
-			content, _ := ioutil.ReadAll(decoder)
+			content, _ := io.ReadAll(decoder)
 			decodeName = string(content)
 		} else {
 			//如果标志为是 1 << 11也就是 2048  则是utf-8编码
@@ -236,7 +236,7 @@ func GetFileName(path string) string {
 
 func SearchFile(fp string) (list []string, err error) {
 	fp, err = filepath.Abs(fp)
-	files, err := ioutil.ReadDir(fp)
+	files, err := os.ReadDir(fp)
 	if err != nil {
 		return nil, err
 	}

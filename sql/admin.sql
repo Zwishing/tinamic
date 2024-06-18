@@ -1,6 +1,6 @@
 -- 创建一个用户
 INSERT INTO user_info.user(id,name,cell_phone,salt,password,created,creator,edited,editor,deleted)
-VALUES (0,'lll.;','15600755813','','admin123',now(),'Alan',now(),'Alan',false);
+VALUES (0,'lll.;','15600755813','','JAvlGPq9JyTdtvBO6x2llnRI1+gxwIyPqCKAn3THIKk=',now(),'Alan',now(),'Alan',false);
 
 INSERT INTO user_info.account(id,user_id,login_account,category,created,creator,edited,editor,deleted)
 VALUES (0,0,'admin',1,now(),'Alan',now(),'Alan',false);

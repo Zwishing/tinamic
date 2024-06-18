@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS user_info.account(
 COMMENT ON TABLE user_info.account IS '账号表:记录登录账号信息';
 
 COMMENT ON COLUMN user_info.account.id IS '账号ID';
-COMMENT ON COLUMN user_info.account.user_id IS '用户ID';
+COMMENT ON COLUMN user_info.account.user_id IS '用户唯一ID';
 COMMENT ON COLUMN user_info.account.login_account IS '登录账号';
 COMMENT ON COLUMN user_info.account.category IS '账号类别,1=用户名，2=邮箱，3=手机号';
 COMMENT ON COLUMN user_info.account.created IS '创建时间';

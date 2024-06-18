@@ -2,10 +2,16 @@ package cache
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+)
+
+var (
+	RedisClient *Storage
 )
 
 // Storage interface that is implemented by storage providers
@@ -14,9 +20,7 @@ type Storage struct {
 }
 
 // New creates a new redis storage
-func New(config ...Config) *Storage {
-	// Set default config
-	cfg := configDefault(config...)
+func New(cfg *RedisConfig) *Storage {
 
 	// Create new redis universal client
 	var db redis.UniversalClient
@@ -25,7 +29,7 @@ func New(config ...Config) *Storage {
 	if cfg.URL != "" {
 		options, err := redis.ParseURL(cfg.URL)
 		if err != nil {
-			panic(err)
+			log.Error().Msgf(err.Error())
 		}
 
 		// Update the config values with the parsed URL values
@@ -59,16 +63,16 @@ func New(config ...Config) *Storage {
 
 	// Test connection
 	if err := db.Ping(context.Background()).Err(); err != nil {
-		panic(err)
+		log.Error().Msgf(err.Error())
 	}
 
 	// Empty collection if Clear is true
 	if cfg.Reset {
 		if err := db.FlushDB(context.Background()).Err(); err != nil {
-			panic(err)
+			log.Error().Msgf(err.Error())
 		}
 	}
-
+	log.Info().Msgf("Connected to redis @ '%s'", cfg.Host)
 	// Create new store
 	return &Storage{
 		db: db,
@@ -76,13 +80,13 @@ func New(config ...Config) *Storage {
 }
 
 // Get value by key
-func (s *Storage) Get(key string) ([]byte, error) {
+func (s *Storage) Get(key string) (string, error) {
 	if len(key) <= 0 {
-		return nil, nil
+		return "", nil
 	}
-	val, err := s.db.Get(context.Background(), key).Bytes()
+	val, err := s.db.Get(context.Background(), key).Result()
 	if err == redis.Nil {
-		return nil, nil
+		return "", nil
 	}
 	return val, err
 }
@@ -93,6 +97,18 @@ func (s *Storage) Set(key string, val []byte, exp time.Duration) error {
 		return nil
 	}
 	return s.db.Set(context.Background(), key, val, exp).Err()
+}
+
+func (s *Storage) SetMap(key string, val map[string]string, exp time.Duration) error {
+	if len(key) <= 0 || len(val) <= 0 {
+		return nil
+	}
+
+	marshalProfile, err := json.Marshal(val)
+	if err != nil {
+		return err
+	}
+	return s.db.Set(context.Background(), key, marshalProfile, exp).Err()
 }
 
 // Delete key by key

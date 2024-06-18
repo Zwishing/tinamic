@@ -6,63 +6,46 @@ import (
 	"fmt"
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgconn"
-	"reflect"
-
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
+	"tinamic/conf"
 
 	// Logging
 	"github.com/rs/zerolog/log"
 )
 
 var (
-	Db *pgxpool.Pool //定义一个连接池
+	db *Dbpool //定义一个连接池
+
+	once sync.Once
 )
 
-// DbConnect 连接数据库
-func DbConnect(config *pgxpool.Config) (err error) {
-	// Connect!
-	Db, err = pgxpool.ConnectConfig(context.Background(), config)
+type Dbpool struct {
+	*pgxpool.Pool
+}
+
+func New(config *pgxpool.Config) *Dbpool {
+	dbPool, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
-		log.Fatal().Msgf("%s", err)
+		log.Error().Msgf("%s", err)
+		return nil
 	}
 	dbName := config.ConnConfig.Config.Database
 	dbUser := config.ConnConfig.Config.User
 	dbHost := config.ConnConfig.Config.Host
 	log.Info().Msgf("Connected as '%s' to '%s' @ '%s'", dbUser, dbName, dbHost)
-	return nil
+	return &Dbpool{
+		dbPool,
+	}
 }
 
-//	func DBTileRequest(ctx context.Context, tr *TileRequest) ([]byte, error) {
-//		db, err := DbConnect()
-//		if err != nil {
-//			log.Error(err)
-//			return nil, err
-//		}
-//		row := db.QueryRow(ctx, tr.SQL, tr.Args...)
-//		var mvtTile []byte
-//		err = row.Scan(&mvtTile)
-//		if err != nil {
-//			log.Warn(err)
-//
-//			// check for errors retrieving the rendered tile from the database
-//			// Timeout errors can occur if the context deadline is reached
-//			// or if the context is canceled during/before a database query.
-//			if pgconn.Timeout(err) {
-//				return nil,err
-//			}
-//
-//			return nil,err
-//		}
-//		return mvtTile, nil
-//	}
-//
-// QueryVersion 获取postgis版本
-func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
-
+// QueryVersion 查询版本
+func (db *Dbpool) QueryVersion() (map[string]string, int, error) {
 	row := db.QueryRow(context.Background(), "SELECT postgis_full_version()")
 	var verStr string
 	err := row.Scan(&verStr)
@@ -96,10 +79,8 @@ func QueryVersion(db *pgxpool.Pool) (map[string]string, int, error) {
 	return vers, PostGISVersion, nil
 }
 
-func Raster2pgsql() {
-}
-
-func Insert(schema, table string, source interface{}) (pgconn.CommandTag, error) {
+// Insert 插入数据
+func (db *Dbpool) Insert(schema, table string, source interface{}) (pgconn.CommandTag, error) {
 	t := reflect.TypeOf(source)
 	var field strings.Builder
 	var value strings.Builder
@@ -146,7 +127,7 @@ func Insert(schema, table string, source interface{}) (pgconn.CommandTag, error)
 
 		log.Info().Msg(sqlString)
 
-		tag, err := Db.Exec(context.Background(), sqlString, values...)
+		tag, err := db.Exec(context.Background(), sqlString, values...)
 
 		if err != nil {
 			return nil, err
@@ -156,16 +137,44 @@ func Insert(schema, table string, source interface{}) (pgconn.CommandTag, error)
 	return nil, errors.New("")
 }
 
-func Select(sql string, dest interface{}) {
-
-	pgxscan.Select(context.Background(), Db, &dest, sql)
+func (db *Dbpool) Select(sql string, dest interface{}) error {
+	err := pgxscan.Select(context.Background(), db, &dest, sql)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func Create(schema, table string, source interface{}) {
+// SelectRow 查询单行数据
+func (db *Dbpool) SelectRow(sql string, dest ...interface{}) error {
+	err := db.QueryRow(context.Background(), sql).Scan(dest...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *Dbpool) Create(schema, table string, source interface{}) {
 	t := reflect.TypeOf(source)
 	if t.Kind() != reflect.Struct {
 		return
 	}
 	createSchemaSql := fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s`, schema)
-	fmt.Println(createSchemaSql)
+	log.Info().Msgf(createSchemaSql)
+}
+
+func GetDbPoolInstance() *Dbpool {
+	once.Do(func() {
+		cfg := conf.GetConfigInstance()
+		constr := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+			cfg.GetString("database.postgresql.user"),
+			cfg.GetString("database.postgresql.password"),
+			cfg.GetString("database.postgresql.host"),
+			cfg.GetInt32("database.postgresql.port"),
+			cfg.GetString("database.postgresql.database"),
+			cfg.GetString("database.postgresql.sslmode"))
+		dbConfig := NewPgConfig(WithConnString(constr))
+		db = New(dbConfig.Config)
+	})
+	return db
 }

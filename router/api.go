@@ -4,21 +4,21 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"time"
-	"tinamic/handler/user"
+	"tinamic/handler"
 	"tinamic/handler/vector"
+	"tinamic/pkg/middlewares"
 )
 
 func RegisterAPI(api fiber.Router) {
-	registerMvtServices(api)
-	registerFeatureServices(api)
-	registerRasterServices(api)
+	registerMvtService(api)
+	registerFeatureService(api)
+	registerRasterService(api)
 	registerData(api)
-	registerUsers(api)
+	registerUser(api)
 	registerUpload(api)
-
 }
 
-func registerMvtServices(api fiber.Router) {
+func registerMvtService(api fiber.Router) {
 	layer := api.Group("/mvt-services")
 
 	//layer.Get("/get_table_layers", controllers.GetTableLayers)
@@ -28,7 +28,7 @@ func registerMvtServices(api fiber.Router) {
 
 }
 
-func registerFeatureServices(api fiber.Router) {
+func registerFeatureService(api fiber.Router) {
 	layer := api.Group("/feature-services")
 
 	//layer.Get("/get_table_layers", controllers.GetTableLayers)
@@ -36,7 +36,7 @@ func registerFeatureServices(api fiber.Router) {
 
 }
 
-func registerRasterServices(api fiber.Router) {
+func registerRasterService(api fiber.Router) {
 	layer := api.Group("/raster-services")
 
 	//layer.Get("/get_table_layers", controllers.GetTableLayers)
@@ -45,17 +45,18 @@ func registerRasterServices(api fiber.Router) {
 }
 
 func registerData(api fiber.Router) {
-	data := api.Group("/data")
+	//data := api.Group("/data")
 
-	data.Post("/upload", vector.Upload)
-	data.Post("/publish", vector.Publish)
-	data.Get("/get_spatial_data", vector.QuerySpatialData)
+	//data.Post("/upload", vector.Upload)
+	//data.Post("/publish", vector.Publish)
+	//data.Get("/get_spatial_data", vector.QuerySpatialData)
 
 }
 
-func registerUsers(api fiber.Router) {
-	users := api.Group("/users")
+func registerUser(api fiber.Router) {
+	user := api.Group("/user")
 
-	users.Post("/register", user.Register)
-	users.Post("/login", user.Login)
+	user.Post("/register", handler.Register)
+	user.Post("/login", handler.Login)
+	user.Get("/profile", middlewares.Protected, handler.Profile)
 }

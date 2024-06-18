@@ -2,7 +2,7 @@ package user
 
 import "tinamic/util"
 
-type AccountCategory = int
+type AccountCategory = int8
 
 const (
 	Name AccountCategory = iota
@@ -10,7 +10,7 @@ const (
 	Phone
 )
 
-type PermssionCategory = int
+type PermssionCategory = int8
 
 const (
 	Write PermssionCategory = iota + 1
@@ -27,7 +27,7 @@ type Account struct {
 	*BaseRecorder
 }
 
-func NewAccount(userId int, loginAccount string, category int) *Account {
+func NewAccount(userId int, loginAccount string, category int8) *Account {
 	return &Account{UserId: userId, LoginAccount: loginAccount, Category: category}
 }
 

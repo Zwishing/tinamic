@@ -58,3 +58,14 @@ func TestRandomSalt(t *testing.T) {
 	salt := RandomSalt()
 	fmt.Println(salt)
 }
+
+func TestCreateHashPassword(t *testing.T) {
+	hashPassword := CreateHashPassword("admin123", "")
+	fmt.Println(hashPassword)
+}
+
+func TestValidatePassword(t *testing.T) {
+	isValid := ValidatePassword("admin123", "", "admin123")
+	fmt.Println(isValid)
+
+}

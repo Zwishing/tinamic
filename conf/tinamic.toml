@@ -3,16 +3,20 @@
     Title = "Tinamic"
     Author = "Zwishing"
 
+[app]
+
+
 [server]
     port = 3000
     name = "Tinamic"
+    temp = ""
 
 [database]
     [database.postgresql]
         #DbConnection = "postgresql://postgres:admin@localhost/postgres"
         host="1.92.113.25"
         port=5432
-        database="postgres"
+        database="tinamic"
         user="postgres"
         password="admin321"
         poolMaxConnLifeTime="1h" # Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h".
@@ -29,11 +33,11 @@
         collection=""
 
     [database.redis]
-        host="127.0.0.1"
+        host="1.92.113.25"
         port=6379
         database=0
-        user="postgres"
-        password="admin"
+        user=""
+        password="123456"
         poolMaxConns=10 # socket 连接最大数
 
 [storage]
@@ -42,5 +46,6 @@
         bucket="vector"
         accessKey="ugNa8yDGzk4gESCATs06"
         secretKey="ruiC05DkvnxxNZrMba5kUbgux8oJLreYuulXhryw"
+        buckets = ["vector","raster"]
 
 
