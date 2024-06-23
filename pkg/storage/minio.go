@@ -3,13 +3,16 @@ package storage
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rs/zerolog/log"
 	"github.com/valyala/bytebufferpool"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 	"tinamic/conf"
@@ -212,6 +215,81 @@ func (s *storage) ObjExist(bucketName, objectName string) bool {
 		return false
 	}
 	return true
+}
+func (s *storage) GetFiles(bucketName string) ([]byte, error) {
+	opts := minio.ListObjectsOptions{
+		Recursive: true,
+	}
+	tree := model.FolderFileTree{
+		Root: &model.FolderNode{Key: bucketName},
+	}
+	ctx := context.Background()
+	for object := range s.minio.ListObjects(ctx, bucketName, opts) {
+		if object.Err != nil {
+			return nil, object.Err
+		}
+		if strings.Contains(object.Key, "/") {
+			keyParts := strings.Split(object.Key, "/")
+			for index, key := range keyParts {
+				node := model.FindNode(tree.Root, key)
+				if node == nil {
+					var child model.Node
+					if index == len(keyParts)-1 {
+						child = &model.FileNode{
+							Key:   object.ETag,
+							Type:  "file",
+							Title: key,
+							Size:  object.Size,
+						}
+					} else {
+						child = &model.FolderNode{
+							Key:   key,
+							Type:  "folder",
+							Title: key,
+						}
+					}
+					if index == 0 {
+						tree.AddNode(bucketName, child)
+					} else {
+						tree.AddNode(keyParts[index-1], child)
+					}
+				}
+			}
+
+		} else {
+			child := &model.FileNode{
+				Title:        object.Key,
+				Key:          object.ETag,
+				Type:         "file",
+				Size:         object.Size,
+				ModifiedTime: object.LastModified,
+			}
+			tree.AddNode(bucketName, child)
+		}
+	}
+	jsonData, err := json.MarshalIndent(tree.Root.Children, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	return jsonData, nil
+}
+
+func (s *storage) GetFileByFolder(bucketName, folderPrefix string) {
+	ctx := context.Background()
+	opts := minio.ListObjectsOptions{
+		Recursive: false,
+		Prefix:    folderPrefix,
+	}
+	for object := range s.minio.ListObjects(ctx, bucketName, opts) {
+		if object.Err != nil {
+		}
+		if object.Size == 0 && object.Key[len(object.Key)-1] == '/' {
+			fmt.Printf("Found folder: %s\n", object.Key)
+		} else {
+			fmt.Printf("Found file: %s\n", object.Key)
+		}
+	}
+
 }
 
 func GetMinioInstance() model.Client {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -68,4 +69,10 @@ func TestValidatePassword(t *testing.T) {
 	isValid := ValidatePassword("admin123", "", "admin123")
 	fmt.Println(isValid)
 
+}
+
+func Test(t *testing.T) {
+	a := "/errr/tyui/90.png"
+	b := strings.Split(a, "/")
+	fmt.Println(b)
 }

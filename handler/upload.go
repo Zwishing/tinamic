@@ -3,15 +3,9 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"strconv"
+	"tinamic/model"
 	"tinamic/service/upload"
 	"tinamic/util/response"
-)
-
-type DataType int8
-
-const (
-	Vector DataType = iota
-	Raster
 )
 
 func CreatePostPresignedUrl(ctx *fiber.Ctx) error {
@@ -32,9 +26,6 @@ func CreatePostPresignedUrl(ctx *fiber.Ctx) error {
 
 func CreatePutPresignedUrl(ctx *fiber.Ctx) error {
 	bucketName, fileName := parseDataTypeUrl(ctx)
-
-	//dataType := ctx.Queries()["dataType"]
-
 	presignedURL, err := upload.PutUploadPresignedUrl(bucketName, fileName, 1000)
 	if err != nil {
 		return response.Fail(ctx, err.Error())
@@ -49,15 +40,15 @@ func CreatePutPresignedUrl(ctx *fiber.Ctx) error {
 }
 
 func parseDataTypeUrl(ctx *fiber.Ctx) (string, string) {
-
-	dataType, _ := strconv.Atoi(ctx.Params("dtype"))
+	dataType, _ := strconv.Atoi(ctx.Queries()["dtype"])
 	fileName := ctx.Queries()["file"]
 	var bucketName string
 	switch dataType {
-	case int(Raster):
-		bucketName = "raster"
-	case int(Vector):
+	case int(model.VectorType):
 		bucketName = "vector"
+	case int(model.ImageryType):
+		bucketName = "raster"
+
 	}
 	return bucketName, fileName
 }
