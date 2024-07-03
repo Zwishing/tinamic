@@ -1,5 +1,6 @@
-package model
+package datasource
 
+// DataSourceType
 type DataSourceType int8
 
 const (
@@ -21,15 +22,34 @@ func (dst DataSourceType) String() string {
 	case TerrainType:
 		return "terrain"
 	case PointCloudType:
-		return "point cloud"
+		return "point_cloud"
 	case PhotogrammetryType:
 		return "photogrammetry"
 	case SurfaceModelType:
-		return "surface model"
+		return "surface_model"
 	case BIMType:
-		return "building information model"
+		return "building_information_model"
 	default:
 		return "unknown DataSourceType"
+	}
+}
+
+func DataSourceTypeId(sourceType string) DataSourceType {
+	switch sourceType {
+	case "vector":
+		return VectorType
+	case "imagery":
+		return ImageryType
+	case "terrain":
+		return TerrainType
+	case "pointcloud":
+		return PointCloudType
+	case "surfacemodel":
+		return SurfaceModelType
+	case "bim":
+		return BIMType
+	default:
+		return VectorType
 	}
 }
 

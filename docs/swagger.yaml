@@ -1,0 +1,39 @@
+basePath: /api/v1
+host: localhost:3000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for a Fiber API with router groups.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Fiber Router Swagger Example API
+  version: "1.0"
+paths:
+  /api/v1/user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      operationId: register-user
+      parameters:
+      - description: User Registration
+        in: body
+        name: user
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+swagger: "2.0"

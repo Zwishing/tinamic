@@ -1,21 +1,22 @@
-package middlewares
+package util
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
-	"strconv"
+	"github.com/golang-jwt/jwt/v5"
 	"time"
 	"tinamic/model/user"
 )
 
 var jwtKey = []byte("a_secret_crect")
 
-func ReleaseToken(user *user.User) (string, error) {
+func ReleaseToken(userId string, role string) (string, error) {
 
-	expirationTime := time.Now().Add(24 * time.Hour).Unix()
+	expirationTime := time.Now().Add(30 * time.Minute).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userId": strconv.Itoa(user.Id),
-		"exp":    expirationTime,
+		"userId":             userId,
+		user.GetRoleString(): role,
+		"genTime":            time.Now(),
+		"exp":                expirationTime,
 	})
 
 	tokenString, err := token.SignedString(jwtKey)
@@ -25,7 +26,7 @@ func ReleaseToken(user *user.User) (string, error) {
 	return tokenString, nil
 }
 
-func validateToken(tokenString string) error {
+func ValidateToken(tokenString string) (map[string]any, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -34,13 +35,12 @@ func validateToken(tokenString string) error {
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Printf("User ID: %s\n", claims["user_id"])
-		return nil
+		return claims, nil
 	} else {
-		return fmt.Errorf("invalid token")
+		return nil, fmt.Errorf("invalid token")
 	}
 }

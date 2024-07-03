@@ -1,4 +1,4 @@
-package cache
+package redis
 
 import (
 	"crypto/tls"
@@ -76,4 +76,80 @@ type RedisConfig struct {
 	//
 	// Optional. Default is 10 connections per every available CPU as reported by runtime.GOMAXPROCS.
 	PoolSize int
+}
+
+// RedisOptions defines a function type for setting Redis configuration options.
+type RedisOptions func(cfg *RedisConfig)
+
+func NewRedisConfig(opts ...RedisOptions) *RedisConfig {
+	// 默认值初始化
+	cfg := RedisConfig{
+		Port: 6379,
+	}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+	return &cfg
+}
+
+// WithHost sets the host option for RedisConfig.
+func WithHost(host string) RedisOptions {
+	return func(c *RedisConfig) {
+		c.Host = host
+	}
+}
+
+// WithPort sets the port option for RedisConfig.
+func WithPort(port int) RedisOptions {
+	return func(c *RedisConfig) {
+		c.Port = port
+	}
+}
+
+// WithUsername sets the username option for RedisConfig.
+func WithUsername(username string) RedisOptions {
+	return func(c *RedisConfig) {
+		c.Username = username
+	}
+}
+
+// WithPassword sets the password option for RedisConfig.
+func WithPassword(password string) RedisOptions {
+	return func(c *RedisConfig) {
+		c.Password = password
+	}
+}
+
+// WithDatabase sets the database option for RedisConfig.
+func WithDatabase(database int) RedisOptions {
+	return func(c *RedisConfig) {
+		c.Database = database
+	}
+}
+
+// WithURL sets the URL option for RedisConfig.
+func WithURL(url string) RedisOptions {
+	return func(c *RedisConfig) {
+		c.URL = url
+	}
+}
+
+// WithAddrs sets the addrs option for RedisConfig.
+func WithAddrs(addrs []string) RedisOptions {
+	return func(c *RedisConfig) {
+		c.Addrs = addrs
+	}
+}
+
+// WithTLSConfig sets the TLSConfig option for RedisConfig.
+func WithTLSConfig(tlsConfig *tls.Config) RedisOptions {
+	return func(c *RedisConfig) {
+		c.TLSConfig = tlsConfig
+	}
+}
+
+func WithPoolSize(poolSize int) RedisOptions {
+	return func(c *RedisConfig) {
+		c.PoolSize = poolSize
+	}
 }

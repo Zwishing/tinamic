@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"time"
-	"tinamic/handler"
 	"tinamic/handler/vector"
-	"tinamic/pkg/middlewares"
+	"tinamic/wire"
 )
 
 func RegisterAPI(api fiber.Router) {
+	userHandler := wire.InitializeUserService()
+	dataSourceHandler := wire.InitializeDataSourceService()
 	registerMvtService(api)
 	registerFeatureService(api)
 	registerRasterService(api)
-	registerData(api)
-	registerUser(api)
+	registerDataSource(api, dataSourceHandler)
+	registerUser(api, userHandler)
 	registerUpload(api)
 }
 
@@ -42,21 +43,4 @@ func registerRasterService(api fiber.Router) {
 	//layer.Get("/get_table_layers", controllers.GetTableLayers)
 	layer.Get("/:uuid/:z/:x/:y.pbf", vector.GetTableLayerTile)
 
-}
-
-func registerData(api fiber.Router) {
-	//data := api.Group("/data")
-
-	//data.Post("/upload", vector.Upload)
-	//data.Post("/publish", vector.Publish)
-	//data.Get("/get_spatial_data", vector.QuerySpatialData)
-
-}
-
-func registerUser(api fiber.Router) {
-	user := api.Group("/user")
-
-	user.Post("/register", handler.Register)
-	user.Post("/login", handler.Login)
-	user.Get("/profile", middlewares.Protected, handler.Profile)
 }

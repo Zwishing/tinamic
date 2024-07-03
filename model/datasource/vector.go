@@ -1,4 +1,4 @@
-package model
+package datasource
 
 import "github.com/google/uuid"
 

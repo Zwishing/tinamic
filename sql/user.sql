@@ -1,14 +1,14 @@
 CREATE SCHEMA IF NOT EXISTS user_info;
-
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 账号表:记录登录账号信息
 CREATE TABLE IF NOT EXISTS user_info.account(
     id serial PRIMARY KEY,
-    user_id integer,
-    login_account varchar(255),
-    category smallint,
-    created timestamptz,
+    user_id uuid DEFAULT uuid_generate_v4() NOT NULL,
+    user_account varchar(255) UNIQUE NOT NULL,
+    category smallint NOT NULL,
+    created timestamptz DEFAULT now(),
     creator varchar(72),
-    edited timestamptz,
+    edited timestamptz DEFAULT now(),
     editor varchar(72),
     deleted bool DEFAULT FALSE
 );
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS user_info.account(
 COMMENT ON TABLE user_info.account IS '账号表:记录登录账号信息';
 
 COMMENT ON COLUMN user_info.account.id IS '账号ID';
-COMMENT ON COLUMN user_info.account.user_id IS '用户唯一ID';
-COMMENT ON COLUMN user_info.account.login_account IS '登录账号';
+COMMENT ON COLUMN user_info.account.user_id IS '用户唯一标识';
+COMMENT ON COLUMN user_info.account.user_account IS '登录账号';
 COMMENT ON COLUMN user_info.account.category IS '账号类别,1=用户名，2=邮箱，3=手机号';
 COMMENT ON COLUMN user_info.account.created IS '创建时间';
 COMMENT ON COLUMN user_info.account.creator IS '创建人';
@@ -32,22 +32,24 @@ CREATE INDEX account_user_id_index ON user_info.account(user_id);
 -- 用户表:记录用户基本信息和密码
 CREATE TABLE IF NOT EXISTS user_info.user(
     id serial PRIMARY KEY,
-    state bool DEFAULT TRUE,
+    user_id uuid NOT NULL,
+    state bool DEFAULT TRUE NOT NULL ,
     name varchar(255),
     avatar bytea,
     cell_phone varchar(11),
     salt varchar(64),
     password varchar(64),
-    created timestamptz,
+    created timestamptz DEFAULT now(),
     creator varchar(72),
-    edited timestamptz,
+    edited timestamptz DEFAULT now(),
     editor varchar(72),
-    deleted bool DEFAULT FALSE
+    deleted bool DEFAULT FALSE NOT NULL
 );
 -- 注释
 COMMENT ON TABLE user_info.user IS '用户表:记录用户基本信息和密码';
 
 COMMENT ON COLUMN user_info.user.id IS '用户ID';
+COMMENT ON COLUMN user_info.user.user_id IS '用户唯一标识';
 COMMENT ON COLUMN user_info.user.state IS '用户状态,true=正常,false=禁用';
 COMMENT ON COLUMN user_info.user.name IS '姓名';
 COMMENT ON COLUMN user_info.user.avatar IS '用户头像图片';
@@ -61,21 +63,22 @@ COMMENT ON COLUMN user_info.user.editor IS '修改人';
 COMMENT ON COLUMN user_info.user.deleted IS '逻辑删除:true=删除,false=未删除';
 -- 索引
 CREATE INDEX user_id_index ON user_info.user(id);
+CREATE INDEX user_uuid_index ON user_info.user(user_id);
 
 -- 权限表:记录权限信息
 CREATE TABLE IF NOT EXISTS user_info.permission(
     id serial PRIMARY KEY,
-    parent_id integer,
+    parent_id integer NOT NULL,
     code varchar(255),
     name varchar(255),
     introduction varchar(255),
     category smallint,
     uri integer,
-    created timestamptz,
+    created timestamptz DEFAULT now(),
     creator varchar(72),
-    edited timestamptz,
+    edited timestamptz DEFAULT now(),
     editor varchar(72),
-    deleted bool DEFAULT FALSE
+    deleted bool DEFAULT FALSE NOT NULL
 );
 COMMENT ON TABLE user_info.permission IS '权限表:记录权限信息';
 
@@ -99,15 +102,15 @@ CREATE INDEX permission_code_index ON user_info.permission(code);
 -- 角色表:记录角色信息，即定义权限组
 CREATE TABLE IF NOT EXISTS user_info.role(
     id serial PRIMARY KEY,
-    parent_id integer,
-    code varchar(255),
-    name varchar(255),
+    parent_id integer NOT NULL ,
+    code varchar(255) NOT NULL ,
+    name varchar(255) NOT NULL ,
     introduction varchar(255),
-    created timestamptz,
+    created timestamptz DEFAULT now(),
     creator varchar(72),
-    edited timestamptz,
+    edited timestamptz DEFAULT now(),
     editor varchar(72),
-    deleted bool DEFAULT FALSE
+    deleted bool DEFAULT FALSE Not Null
 );
 
 COMMENT ON TABLE user_info.role IS '角色表:记录角色信息，即定义权限组';
@@ -130,19 +133,19 @@ CREATE INDEX role_code_index ON user_info.role(code);
 -- 用户-角色关联表:记录每个用户拥有哪些角色信息
 CREATE TABLE IF NOT EXISTS user_info.user_role(
     id serial PRIMARY KEY,
-    user_id integer,
-    role_id integer,
-    created timestamptz,
+    user_id uuid NOT NULL,
+    role_id integer NOT NULL,
+    created timestamptz DEFAULT now(),
     creator varchar(72),
-    edited timestamptz,
+    edited timestamptz DEFAULT now(),
     editor varchar(72),
-    deleted bool DEFAULT FALSE
+    deleted bool DEFAULT FALSE NOT NULL
 );
 -- 注释
 COMMENT ON TABLE user_info.user_role IS '用户-角色关联表:记录每个用户拥有哪些角色信息';
 
 COMMENT ON COLUMN user_info.user_role.id IS 'ID';
-COMMENT ON COLUMN user_info.user_role.user_id IS '用户ID';
+COMMENT ON COLUMN user_info.user_role.user_id IS '用户唯一标识';
 COMMENT ON COLUMN user_info.user_role.role_id IS '角色ID';
 COMMENT ON COLUMN user_info.user_role.created IS '创建时间';
 COMMENT ON COLUMN user_info.user_role.creator IS '创建人';
@@ -158,13 +161,13 @@ CREATE INDEX user_role_role_id_index ON user_info.user_role(role_id);
 -- 角色-权限关联表:记录每个角色拥有哪些权限信息
 CREATE TABLE IF NOT EXISTS user_info.role_permission(
     id serial PRIMARY KEY,
-    role_id integer,
-    permission_id integer,
-    created timestamptz,
+    role_id integer NOT NULL,
+    permission_id integer NOT NULL,
+    created timestamptz DEFAULT now(),
     creator varchar(72),
-    edited timestamptz,
+    edited timestamptz DEFAULT now(),
     editor varchar(72),
-    deleted bool DEFAULT FALSE
+    deleted bool DEFAULT FALSE NOT NULL
 );
 --注释
 COMMENT ON TABLE user_info.role_permission IS '角色-权限关联表:记录每个角色拥有哪些权限信息';

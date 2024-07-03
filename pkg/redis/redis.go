@@ -1,4 +1,4 @@
-package cache
+package redis
 
 import (
 	"context"
@@ -10,17 +10,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var (
-	RedisClient *Storage
-)
-
-// Storage interface that is implemented by storage providers
-type Storage struct {
+// RedisStorage interface that is implemented by storage providers
+type RedisStorage struct {
 	db redis.UniversalClient
 }
 
 // New creates a new redis storage
-func New(cfg *RedisConfig) *Storage {
+func NewRedisStorage(cfg *RedisConfig) *RedisStorage {
 
 	// Create new redis universal client
 	var db redis.UniversalClient
@@ -74,13 +70,13 @@ func New(cfg *RedisConfig) *Storage {
 	}
 	log.Info().Msgf("Connected to redis @ '%s'", cfg.Host)
 	// Create new store
-	return &Storage{
+	return &RedisStorage{
 		db: db,
 	}
 }
 
 // Get value by key
-func (s *Storage) Get(key string) (string, error) {
+func (s *RedisStorage) Get(key string) (string, error) {
 	if len(key) <= 0 {
 		return "", nil
 	}
@@ -92,18 +88,14 @@ func (s *Storage) Get(key string) (string, error) {
 }
 
 // Set key with value
-func (s *Storage) Set(key string, val []byte, exp time.Duration) error {
+func (s *RedisStorage) Set(key string, val []byte, exp time.Duration) error {
 	if len(key) <= 0 || len(val) <= 0 {
 		return nil
 	}
 	return s.db.Set(context.Background(), key, val, exp).Err()
 }
 
-func (s *Storage) SetMap(key string, val map[string]string, exp time.Duration) error {
-	if len(key) <= 0 || len(val) <= 0 {
-		return nil
-	}
-
+func (s *RedisStorage) SetMap(key string, val any, exp time.Duration) error {
 	marshalProfile, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -112,7 +104,7 @@ func (s *Storage) SetMap(key string, val map[string]string, exp time.Duration) e
 }
 
 // Delete key by key
-func (s *Storage) Delete(key string) error {
+func (s *RedisStorage) Delete(key string) error {
 	if len(key) <= 0 {
 		return nil
 	}
@@ -120,22 +112,22 @@ func (s *Storage) Delete(key string) error {
 }
 
 // Reset all keys
-func (s *Storage) Reset() error {
+func (s *RedisStorage) Reset() error {
 	return s.db.FlushDB(context.Background()).Err()
 }
 
 // Close the database
-func (s *Storage) Close() error {
+func (s *RedisStorage) Close() error {
 	return s.db.Close()
 }
 
 // Return database client
-func (s *Storage) Conn() redis.UniversalClient {
+func (s *RedisStorage) Conn() redis.UniversalClient {
 	return s.db
 }
 
 // Return all the keys
-func (s *Storage) Keys() ([][]byte, error) {
+func (s *RedisStorage) Keys() ([][]byte, error) {
 	var keys [][]byte
 	var cursor uint64
 	var err error

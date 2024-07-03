@@ -26,6 +26,7 @@ func CreateHashPassword(password string, salt string) string {
 	return hashPassword
 }
 
+// ValidatePassword 验证密码是否正确
 func ValidatePassword(password, salt, hashPassword string) bool {
 	computedHash := CreateHashPassword(password, salt)
 	return hashPassword == computedHash

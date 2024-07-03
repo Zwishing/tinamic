@@ -48,4 +48,8 @@
         secretKey="ruiC05DkvnxxNZrMba5kUbgux8oJLreYuulXhryw"
         buckets = ["vector","raster"]
 
+[message]
+    [message.nsq]
+        host="127.0.0.1"
+        port=4150
 

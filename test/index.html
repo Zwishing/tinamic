@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+</head>
+<body>
+<h1>Upload File to Minio</h1>
+<input type="file" id="fileInput" />
+<button onclick="uploadFile()">Upload</button>
+
+<script>
+    async function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Please select a file.');
+            return;
+        }
+
+        const filename = file.name;
+        const uploadUrl = `http://localhost:3000/v1/data-source/vector/upload?filename=${filename}&path=test/`;
+
+        try {
+            const response = await fetch(uploadUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Length': file.size
+                },
+                body: file
+            });
+
+            if (response.ok) {
+                const result = await response.text();
+                alert('File uploaded successfully: ' + result);
+            } else {
+                alert('Failed to upload file');
+            }
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            alert('Error uploading file');
+        }
+    }
+</script>
+</body>
+</html>

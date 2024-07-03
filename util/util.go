@@ -78,7 +78,7 @@ func read(ctx context.Context, wg *sync.WaitGroup, std io.ReadCloser) {
 			if err != nil || err == io.EOF {
 				return
 			}
-			fmt.Print(ConvertByte2String([]byte(readString), "GB18030"))
+			fmt.Print(ConvertByte2String([]byte(readString), GB18030))
 		}
 	}
 }

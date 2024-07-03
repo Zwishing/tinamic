@@ -3,7 +3,7 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"strconv"
-	"tinamic/model"
+	"tinamic/model/datasource"
 	"tinamic/service/upload"
 	"tinamic/util/response"
 )
@@ -44,9 +44,9 @@ func parseDataTypeUrl(ctx *fiber.Ctx) (string, string) {
 	fileName := ctx.Queries()["file"]
 	var bucketName string
 	switch dataType {
-	case int(model.VectorType):
+	case int(datasource.VectorType):
 		bucketName = "vector"
-	case int(model.ImageryType):
+	case int(datasource.ImageryType):
 		bucketName = "raster"
 
 	}

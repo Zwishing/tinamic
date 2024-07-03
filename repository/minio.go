@@ -1,10 +1,9 @@
-package storage
+package repository
 
 import (
-	"fmt"
 	"sync"
-	"testing"
 	"tinamic/conf"
+	. "tinamic/pkg/storage"
 )
 
 var (
@@ -28,10 +27,4 @@ func GetMinioInstance() *Storage {
 		m, _ = NewStorage(minioConfig)
 	})
 	return m
-}
-
-func TestStorage_GetFiles(t *testing.T) {
-	s := GetMinioInstance()
-	a := s.GetStoreObjectByPath("raster", "")
-	fmt.Println(a)
 }

@@ -1,4 +1,4 @@
-package initialize
+package wire
 
 import (
 	"github.com/gofiber/fiber/v2"

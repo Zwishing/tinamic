@@ -1,9 +1,10 @@
 -- 创建一个用户
-INSERT INTO user_info.user(id,name,cell_phone,salt,password,created,creator,edited,editor,deleted)
-VALUES (0,'lll.;','15600755813','','JAvlGPq9JyTdtvBO6x2llnRI1+gxwIyPqCKAn3THIKk=',now(),'Alan',now(),'Alan',false);
+INSERT INTO user_info.user(user_id,name,cell_phone,salt,password,created,creator,edited,editor,deleted)
+VALUES ('cc9de34f-731f-4c45-9ecd-ef84a07b7427','lll.;','15600755813','','JAvlGPq9JyTdtvBO6x2llnRI1+gxwIyPqCKAn3THIKk=',now(),'Alan',now(),'Alan',false);
 
-INSERT INTO user_info.account(id,user_id,login_account,category,created,creator,edited,editor,deleted)
-VALUES (0,0,'admin',1,now(),'Alan',now(),'Alan',false);
+
+INSERT INTO user_info.account(id,user_id,user_account,category,created,creator,edited,editor,deleted)
+VALUES (0,'cc9de34f-731f-4c45-9ecd-ef84a07b7427','admin',1,now(),'Alan',now(),'Alan',false);
 
 -- 模块权限
 INSERT INTO user_info.permission(id,parent_id, code, name, category,created,creator,edited,editor,deleted)
@@ -26,11 +27,11 @@ INSERT INTO user_info.role(id,parent_id,code,name,created,creator,edited,editor,
 VALUES (2,1,'ordinary_user','普通用户',now(),'Alan',now(),'Alan',false);
 
 INSERT INTO user_info.role(id,parent_id,code,name,created,creator,edited,editor,deleted)
-VALUES (3,2,'tourist','游客',now(),'Alan',now(),'Alan',false);
+VALUES (3,2,'guest','游客',now(),'Alan',now(),'Alan',false);
 
 -- 用户角色:设置一个超级管理员的角色的用户
 INSERT INTO user_info.user_role(id,user_id,role_id,created,creator,edited,editor,deleted)
-VALUES (0,0,0,now(),'Alan',now(),'Alan',false);
+VALUES (0,'cc9de34f-731f-4c45-9ecd-ef84a07b7427',0,now(),'Alan',now(),'Alan',false);
 
 -- 角色权限设置
 INSERT INTO user_info.role_permission(id,role_id,permission_id,created,creator,edited,editor,deleted)

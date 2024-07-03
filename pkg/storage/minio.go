@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rs/zerolog/log"
@@ -15,17 +14,11 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"tinamic/conf"
 	"tinamic/model"
 )
 
-var (
-	m    *storage
-	once sync.Once
-)
-
 // Storage interface that is implemented by storage providers
-type storage struct {
+type Storage struct {
 	minio *minio.Client
 	cfg   *MinioConfig
 	ctx   context.Context
@@ -33,7 +26,7 @@ type storage struct {
 }
 
 // NewStorage creates a new storage
-func NewStorage(cfg *MinioConfig) (*storage, error) {
+func NewStorage(cfg *MinioConfig) (*Storage, error) {
 
 	// Minio instance
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
@@ -45,7 +38,7 @@ func NewStorage(cfg *MinioConfig) (*storage, error) {
 		return nil, err
 	}
 
-	storage := &storage{minio: minioClient, cfg: cfg, ctx: context.Background()}
+	storage := &Storage{minio: minioClient, cfg: cfg, ctx: context.Background()}
 
 	// Reset all entries if set to true
 	if cfg.Reset {
@@ -59,7 +52,7 @@ func NewStorage(cfg *MinioConfig) (*storage, error) {
 }
 
 // Get value by key
-func (s *storage) Get(key string) ([]byte, error) {
+func (s *Storage) Get(key string) ([]byte, error) {
 
 	if len(key) <= 0 {
 		return nil, errors.New("the key value is required")
@@ -82,7 +75,7 @@ func (s *storage) Get(key string) ([]byte, error) {
 }
 
 // Set key with value
-func (s *storage) Set(key string, val []byte, exp time.Duration) error {
+func (s *Storage) Set(key string, val []byte, exp time.Duration) error {
 
 	if len(key) <= 0 {
 		return errors.New("the key value is required")
@@ -103,7 +96,7 @@ func (s *storage) Set(key string, val []byte, exp time.Duration) error {
 }
 
 // Delete entry by key
-func (s *storage) Delete(key string) error {
+func (s *Storage) Delete(key string) error {
 
 	if len(key) <= 0 {
 		return errors.New("the key value is required")
@@ -116,7 +109,7 @@ func (s *storage) Delete(key string) error {
 }
 
 // Reset all entries, including unexpired
-func (s *storage) Reset() error {
+func (s *Storage) Reset() error {
 
 	objectsCh := make(chan minio.ObjectInfo)
 
@@ -144,13 +137,13 @@ func (s *storage) Reset() error {
 }
 
 // Close the storage
-func (s *storage) Close() error {
+func (s *Storage) Close() error {
 	return nil
 }
 
 // CheckBucket Check to see if bucket already exists
-func (s *storage) CheckBucket() error {
-	exists, err := s.minio.BucketExists(s.ctx, s.cfg.Bucket)
+func (s *Storage) CheckBucket(bucketName string) error {
+	exists, err := s.minio.BucketExists(s.ctx, bucketName)
 	if !exists || err != nil {
 		return errors.New("the specified bucket does not exist")
 	}
@@ -158,21 +151,21 @@ func (s *storage) CheckBucket() error {
 }
 
 // CreateBucket Bucket not found so Make a new bucket
-func (s *storage) CreateBucket() error {
+func (s *Storage) CreateBucket() error {
 	return s.minio.MakeBucket(s.ctx, s.cfg.Bucket, minio.MakeBucketOptions{Region: s.cfg.Region})
 }
 
 // RemoveBucket Bucket remove if bucket is empty
-func (s *storage) RemoveBucket() error {
+func (s *Storage) RemoveBucket() error {
 	return s.minio.RemoveBucket(s.ctx, s.cfg.Bucket)
 }
 
 // Conn Return minio client
-func (s *storage) Conn() *minio.Client {
+func (s *Storage) Conn() *minio.Client {
 	return s.minio
 }
 
-func (s *storage) Upload(bucketName, objectName string, reader io.Reader,
+func (s *Storage) Upload(bucketName, objectName string, reader io.Reader,
 	objectSize int64, opts minio.PutObjectOptions) (minio.UploadInfo, error) {
 	object, err := s.minio.PutObject(s.ctx, bucketName, objectName, reader, objectSize, opts)
 	if err != nil {
@@ -180,7 +173,8 @@ func (s *storage) Upload(bucketName, objectName string, reader io.Reader,
 	}
 	return object, nil
 }
-func (s *storage) PostPresignedUrl(bucketName, objectName string, expirySecond time.Duration) (string, map[string]string, error) {
+
+func (s *Storage) PostPresignedUrl(bucketName, objectName string, expirySecond time.Duration) (string, map[string]string, error) {
 	expiry := time.Second * expirySecond
 
 	policy := minio.NewPostPolicy()
@@ -197,7 +191,7 @@ func (s *storage) PostPresignedUrl(bucketName, objectName string, expirySecond t
 	return presignedURL.String(), formData, nil
 }
 
-func (s *storage) PutPresignedUrl(bucketName, objectName string, expirySecond time.Duration) (string, error) {
+func (s *Storage) PutPresignedUrl(bucketName, objectName string, expirySecond time.Duration) (string, error) {
 	expiry := time.Second * expirySecond
 
 	presignedURL, err := s.minio.PresignedPutObject(s.ctx, bucketName, objectName, expiry)
@@ -209,14 +203,15 @@ func (s *storage) PutPresignedUrl(bucketName, objectName string, expirySecond ti
 	return presignedURL.String(), nil
 }
 
-func (s *storage) ObjExist(bucketName, objectName string) bool {
+func (s *Storage) ObjExist(bucketName, objectName string) bool {
 	_, err := s.minio.StatObject(s.ctx, bucketName, objectName, s.cfg.GetObjectOptions)
 	if err != nil {
 		return false
 	}
 	return true
 }
-func (s *storage) GetFiles(bucketName string) ([]byte, error) {
+
+func (s *Storage) GetFiles(bucketName string) ([]byte, error) {
 	opts := minio.ListObjectsOptions{
 		Recursive: true,
 	}
@@ -233,7 +228,7 @@ func (s *storage) GetFiles(bucketName string) ([]byte, error) {
 			for index, key := range keyParts {
 				node := model.FindNode(tree.Root, key)
 				if node == nil {
-					var child model.Node
+					var child model.StoreNode
 					if index == len(keyParts)-1 {
 						child = &model.FileNode{
 							Key:   object.ETag,
@@ -274,7 +269,8 @@ func (s *storage) GetFiles(bucketName string) ([]byte, error) {
 	return jsonData, nil
 }
 
-func (s *storage) GetFileByFolder(bucketName, folderPrefix string) {
+func (s *Storage) GetStoreObjectByPath(bucketName, folderPrefix string) []minio.ObjectInfo {
+	var storeObjects []minio.ObjectInfo
 	ctx := context.Background()
 	opts := minio.ListObjectsOptions{
 		Recursive: false,
@@ -282,30 +278,9 @@ func (s *storage) GetFileByFolder(bucketName, folderPrefix string) {
 	}
 	for object := range s.minio.ListObjects(ctx, bucketName, opts) {
 		if object.Err != nil {
+			return nil
 		}
-		if object.Size == 0 && object.Key[len(object.Key)-1] == '/' {
-			fmt.Printf("Found folder: %s\n", object.Key)
-		} else {
-			fmt.Printf("Found file: %s\n", object.Key)
-		}
+		storeObjects = append(storeObjects, object)
 	}
-
-}
-
-func GetMinioInstance() model.Client {
-	once.Do(func() {
-		cfg := conf.GetConfigInstance()
-		minioConfig := NewMinioConfig(
-			WithBucket(cfg.GetString("storage.minio.bucket")),
-			WithEndpoint(cfg.GetString("storage.minio.endpoint")),
-			WithRegion(cfg.GetString("storage.minio.region")),
-			WithToken(cfg.GetString("storage.minio.token")),
-			WithSecure(cfg.GetBool("storage.minio.secure")),
-			WithCredentials(
-				cfg.GetString("storage.minio.accessKey"),
-				cfg.GetString("storage.minio.secretKey")),
-		)
-		m, _ = NewStorage(minioConfig)
-	})
-	return m
+	return storeObjects
 }

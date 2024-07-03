@@ -1,11 +1,12 @@
 package model
 
 import (
+	"github.com/gofrs/uuid"
 	"time"
 )
 
 // Node is the interface for all nodes
-type Node interface {
+type StoreNode interface {
 	GetTitle() string
 	GetKey() string
 	GetType() string
@@ -15,12 +16,12 @@ type Node interface {
 
 // FolderNode represents a folder node that can have children
 type FolderNode struct {
-	Title        string    `json:"title"`
-	Key          string    `json:"key"`
-	Type         string    `json:"type"`
-	Size         int64     `json:"size,omitempty"`
-	ModifiedTime time.Time `json:"modifiedTime,omitempty"`
-	Children     []Node    `json:"children,omitempty"`
+	Title        string      `json:"title"`
+	Key          string      `json:"key"`
+	Type         string      `json:"type"`
+	Size         int64       `json:"size"`
+	ModifiedTime time.Time   `json:"modifiedTime"`
+	Children     []StoreNode `json:"children"`
 }
 
 // FileNode represents a file node that cannot have children
@@ -28,13 +29,25 @@ type FileNode struct {
 	Title        string    `json:"title"`
 	Key          string    `json:"key"`
 	Type         string    `json:"type"`
-	Size         int64     `json:"size,omitempty"`
-	ModifiedTime time.Time `json:"modifiedTime,omitempty"`
+	Size         int64     `json:"size"`
+	ModifiedTime time.Time `json:"modifiedTime"`
 }
 
 // FolderFileTree represents the root of the folder-file tree
 type FolderFileTree struct {
 	Root *FolderNode
+}
+
+func NewFolderNode(title string, size int64, modifiedTime time.Time) *FolderNode {
+	key, _ := uuid.NewV4()
+	return &FolderNode{
+		Title:        title,
+		Key:          key.String(),
+		Type:         "folder",
+		Size:         size,
+		ModifiedTime: modifiedTime,
+		Children:     nil,
+	}
 }
 
 // GetTitle returns the title of the folder node
@@ -49,7 +62,7 @@ func (f *FolderNode) GetKey() string {
 
 // GetType returns the type of the folder node
 func (f *FolderNode) GetType() string {
-	return f.Type
+	return "folder"
 }
 
 // GetSize returns the size of the folder node
@@ -63,7 +76,7 @@ func (f *FolderNode) GetModifiedTime() time.Time {
 }
 
 // AddChild adds a child node to the folder node
-func (f *FolderNode) AddChild(child Node) {
+func (f *FolderNode) AddChild(child StoreNode) {
 	f.Children = append(f.Children, child)
 }
 
@@ -79,7 +92,7 @@ func (file *FileNode) GetKey() string {
 
 // GetType returns the type of the file node
 func (file *FileNode) GetType() string {
-	return file.Type
+	return "file"
 }
 
 // GetSize returns the size of the file node
@@ -93,7 +106,7 @@ func (file *FileNode) GetModifiedTime() time.Time {
 }
 
 // AddNode adds a new node to the tree at the specified parent key
-func (tree *FolderFileTree) AddNode(parentKey string, newNode Node) bool {
+func (tree *FolderFileTree) AddNode(parentKey string, newNode StoreNode) bool {
 	parentNode := FindNode(tree.Root, parentKey)
 	if parentNode != nil {
 		if folder, ok := parentNode.(*FolderNode); ok {
@@ -105,7 +118,7 @@ func (tree *FolderFileTree) AddNode(parentKey string, newNode Node) bool {
 }
 
 // FindNode finds a node by key
-func FindNode(node Node, key string) Node {
+func FindNode(node StoreNode, key string) StoreNode {
 	if node.GetKey() == key {
 		return node
 	}
