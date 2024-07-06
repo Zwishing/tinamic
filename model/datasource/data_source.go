@@ -119,3 +119,11 @@ type FilePath struct {
 func (fp *FilePath) GetPath() string {
 	return fp.path
 }
+
+type OriginInfo struct {
+	Uuid     string         `json:"uuid"`
+	Name     string         `json:"name"`
+	DataType DataSourceType `json:"dataType"`
+	FilePath string         `json:"filePath"`
+	Owner    string         `json:"owner"`
+}

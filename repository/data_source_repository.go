@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"context"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"io"
 	"tinamic/model"
+	"tinamic/model/datasource"
 	"tinamic/pkg/pg"
 	"tinamic/pkg/storage"
 )
@@ -14,16 +17,19 @@ type DataSourceRepository interface {
 	CheckBucket(bucketName string) bool
 	GenPutUploadPresignedUrl(bucketName, path, fileName string) (string, error)
 	UploadToMinio(bucketName, objectName string, reader io.Reader, objectSize int64) error
+	SaveDataSource(info *datasource.OriginInfo) error
 }
 
 type DataSourceRepositoryImpl struct {
 	*pg.PGPool
+	dialect goqu.DialectWrapper
 	*storage.Storage
 }
 
 func NewDataSourceRepository() DataSourceRepository {
 	return &DataSourceRepositoryImpl{
 		GetDbPoolInstance(),
+		goqu.Dialect("postgres"),
 		GetMinioInstance(),
 	}
 }
@@ -85,4 +91,19 @@ func (dsr *DataSourceRepositoryImpl) CheckBucket(bucketName string) bool {
 		return false
 	}
 	return true
+}
+
+func (dsr *DataSourceRepositoryImpl) SaveDataSource(info *datasource.OriginInfo) error {
+	sql, _, err := dsr.dialect.Insert("data_source.origin_info").
+		Cols("uuid", "name", "data_type", "file_path", "owner").
+		Vals(goqu.Vals{info.Uuid, info.Name, info.DataType, info.FilePath, info.Owner}).
+		ToSQL()
+	if err != nil {
+		return err
+	}
+	_, err = dsr.Pool.Exec(context.Background(), sql)
+	if err != nil {
+		return err
+	}
+	return nil
 }
