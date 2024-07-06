@@ -16,7 +16,16 @@ type NSQConfig struct {
 	MaxAttempts uint16
 }
 
-func NewNSQConsumer(config *NSQConfig, handler nsq.HandlerFunc) (*NSQConsumer, error) {
+func NewNSQConfig() *NSQConfig {
+	return &NSQConfig{
+		Topic:       "add_data",
+		Channel:     "channel1",
+		Address:     "1.92.113.25:4161",
+		MaxAttempts: 10,
+	}
+}
+
+func NewNSQConsumer(config *NSQConfig, handler nsq.Handler) (*NSQConsumer, error) {
 	consumer, err := nsq.NewConsumer(config.Topic, config.Channel, nsq.NewConfig())
 	if err != nil {
 		return nil, err
@@ -32,5 +41,6 @@ func NewNSQConsumer(config *NSQConfig, handler nsq.HandlerFunc) (*NSQConsumer, e
 }
 
 func (c *NSQConsumer) Stop() {
+
 	c.Consumer.Stop()
 }

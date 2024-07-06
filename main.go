@@ -26,8 +26,9 @@ import (
 // @BasePath /api/v1
 func main() {
 	app := wire.InitApp()
+	user, dataSource := wire.InitServices()
+	defer dataSource.Consumer.Stop()
 	app.Use(cors.New())
-
 	// swagger 配置
 	cfg := swagger.Config{
 		BasePath: "/",
@@ -39,7 +40,7 @@ func main() {
 
 	api := app.Group("/v1")
 
-	router.RegisterAPI(api)
+	router.RegisterAPI(api, user.UserHandler, dataSource.DataSourceHandler)
 	//设置端口监听
 	err := app.Listen(fmt.Sprintf(":%d", conf.GetConfigInstance().GetInt("server.port")))
 	if err != nil {

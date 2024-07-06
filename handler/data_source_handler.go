@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/nsqio/go-nsq"
 	"strconv"
 	"tinamic/model/datasource"
 	"tinamic/service"
@@ -17,6 +18,17 @@ func NewDataSourceHandler(dataSource service.DataSourceService) *DataSourceHandl
 	return &DataSourceHandler{
 		DataSource: dataSource,
 	}
+}
+
+// 实现消息的处理
+func (ds *DataSourceHandler) HandleMessage(message *nsq.Message) error {
+	// 业务部分内容
+	//err := ds.DataSource.HandlerMinioUploadMessage(message)
+	//if err != nil {
+	//	return err
+
+	fmt.Println(string(message.Body), message.Attempts)
+	return nil
 }
 
 // GetStoreItems / 请求获取文件和文件夹

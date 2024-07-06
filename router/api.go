@@ -4,18 +4,16 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"time"
+	"tinamic/handler"
 	"tinamic/handler/vector"
-	"tinamic/wire"
 )
 
-func RegisterAPI(api fiber.Router) {
-	userHandler := wire.InitializeUserService()
-	dataSourceHandler := wire.InitializeDataSourceService()
+func RegisterAPI(api fiber.Router, userhandler *handler.UserHandler, sourceHandler *handler.DataSourceHandler) {
 	registerMvtService(api)
 	registerFeatureService(api)
 	registerRasterService(api)
-	registerDataSource(api, dataSourceHandler)
-	registerUser(api, userHandler)
+	registerDataSource(api, sourceHandler)
+	registerUser(api, userhandler)
 	registerUpload(api)
 }
 

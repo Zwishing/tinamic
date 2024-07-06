@@ -120,7 +120,7 @@ func (fp *FilePath) GetPath() string {
 	return fp.path
 }
 
-type OriginInfo struct {
+type BaseInfo struct {
 	Uuid     string         `json:"uuid"`
 	Name     string         `json:"name"`
 	DataType DataSourceType `json:"dataType"`

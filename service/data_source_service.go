@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nsqio/go-nsq"
 	"github.com/pkg/errors"
 	"io"
 	"tinamic/model"
@@ -12,10 +13,16 @@ type DataSourceService interface {
 	GetStoreItems(dst datasource.DataSourceType, path string) ([]model.StoreNode, error)
 	GenPutUploadPresignedUrl(bucketName, path, fileName string) (string, error)
 	UploadToMinio(bucketName, path, fileName string, reader io.Reader, fileSize int64) error
+	HandlerMinioUploadMessage(nsq *nsq.Message) error
 }
 
 type DataSourceServiceImpl struct {
 	repo repository.DataSourceRepository
+}
+
+func (ds *DataSourceServiceImpl) HandlerMinioUploadMessage(nsq *nsq.Message) error {
+	ds.addBaseInfo()
+	panic("implement me")
 }
 
 func (ds *DataSourceServiceImpl) UploadToMinio(bucketName, path, fileName string,
@@ -49,4 +56,9 @@ func (ds *DataSourceServiceImpl) GetStoreItems(dst datasource.DataSourceType, pa
 	}
 	storeItems := ds.repo.GetStoreItems(bucketName, path)
 	return storeItems, nil
+}
+
+func (ds *DataSourceServiceImpl) addBaseInfo() {
+	//TODO implement me
+	panic("implement me")
 }

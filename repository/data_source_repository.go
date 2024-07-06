@@ -17,7 +17,7 @@ type DataSourceRepository interface {
 	CheckBucket(bucketName string) bool
 	GenPutUploadPresignedUrl(bucketName, path, fileName string) (string, error)
 	UploadToMinio(bucketName, objectName string, reader io.Reader, objectSize int64) error
-	SaveDataSource(info *datasource.OriginInfo) error
+	SaveDataSource(info *datasource.BaseInfo) error
 }
 
 type DataSourceRepositoryImpl struct {
@@ -93,7 +93,7 @@ func (dsr *DataSourceRepositoryImpl) CheckBucket(bucketName string) bool {
 	return true
 }
 
-func (dsr *DataSourceRepositoryImpl) SaveDataSource(info *datasource.OriginInfo) error {
+func (dsr *DataSourceRepositoryImpl) SaveDataSource(info *datasource.BaseInfo) error {
 	sql, _, err := dsr.dialect.Insert("data_source.origin_info").
 		Cols("uuid", "name", "data_type", "file_path", "owner").
 		Vals(goqu.Vals{info.Uuid, info.Name, info.DataType, info.FilePath, info.Owner}).
