@@ -17,6 +17,11 @@ func InitApp() *App {
 		//Hasher: hashing.New(config.Conf.GetHasherConfig()),
 		//Session: session.New(CONFIGFILE.GetSessionConfig()),
 	}
-
 	return app
+}
+
+func InitServices() (*UserComponents, *DataSourceComponents) {
+	userHandler := InitializeUserService()
+	dataSourceHandler, _, _ := InitializeDataSourceService()
+	return userHandler, dataSourceHandler
 }

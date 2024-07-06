@@ -8,22 +8,47 @@ package wire
 
 import (
 	"tinamic/handler"
+	"tinamic/pkg/nsq"
 	"tinamic/repository"
 	"tinamic/service"
 )
 
 // Injectors from wire.go:
 
-func InitializeUserService() *handler.UserHandler {
+func InitializeUserService() *UserComponents {
 	userRepository := repository.NewUserRepository()
 	userService := service.NewUserService(userRepository)
 	userHandler := handler.NewUserHandler(userService)
-	return userHandler
+	userComponents := &UserComponents{
+		UserHandler: userHandler,
+	}
+	return userComponents
 }
 
-func InitializeDataSourceService() *handler.DataSourceHandler {
+func InitializeDataSourceService() (*DataSourceComponents, func(), error) {
+	nsqConfig := nsq.NewNSQConfig()
 	dataSourceRepository := repository.NewDataSourceRepository()
 	dataSourceService := service.NewDataSourceService(dataSourceRepository)
 	dataSourceHandler := handler.NewDataSourceHandler(dataSourceService)
-	return dataSourceHandler
+	nsqConsumer, err := nsq.NewNSQConsumer(nsqConfig, dataSourceHandler)
+	if err != nil {
+		return nil, nil, err
+	}
+	dataSourceComponents := &DataSourceComponents{
+		Consumer:          nsqConsumer,
+		DataSourceHandler: dataSourceHandler,
+	}
+	return dataSourceComponents, func() {
+	}, nil
+}
+
+// wire.go:
+
+type UserComponents struct {
+	UserHandler *handler.UserHandler
+}
+
+type DataSourceComponents struct {
+	Consumer          *nsq.NSQConsumer
+	DataSourceHandler *handler.DataSourceHandler
 }

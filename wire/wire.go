@@ -3,63 +3,48 @@
 //go:build wireinject
 // +build wireinject
 
-//package wire
-
-//import (
-//	"github.com/google/wire"
-//	"tinamic/handler"
-//	"tinamic/repository"
-//	"tinamic/service"
-//)
-//
-//func InitializeUserRepository() repository.UserRepository {
-//	wire.Build(
-//		repository.NewUserRepository,
-//	)
-//	return nil
-//}
-//
-//func InitializeUserService() service.UserService {
-//	wire.Build(
-//		service.NewUserService,
-//		InitializeUserRepository,
-//	)
-//	return nil
-//}
-//
-//func InitializeUserHandler() *handler.UserHandler {
-//	wire.Build(
-//		handler.NewUserHandler,
-//		InitializeUserService,
-//	)
-//	return nil
-//}
-
 // wire/inject.go
 
 package wire
 
 import (
 	"github.com/google/wire"
+	gonsq "github.com/nsqio/go-nsq"
 	"tinamic/handler"
+	"tinamic/pkg/nsq"
 	"tinamic/repository"
 	"tinamic/service"
 )
 
-func InitializeUserService() *handler.UserHandler {
+type UserComponents struct {
+	UserHandler *handler.UserHandler
+}
+
+func InitializeUserService() *UserComponents {
 	wire.Build(
 		repository.NewUserRepository,
 		service.NewUserService,
 		handler.NewUserHandler,
+		wire.Struct(new(UserComponents), "UserHandler"),
 	)
-	return &handler.UserHandler{}
+	return &UserComponents{}
 }
 
-func InitializeDataSourceService() *handler.DataSourceHandler {
+type DataSourceComponents struct {
+	Consumer          *nsq.NSQConsumer
+	DataSourceHandler *handler.DataSourceHandler
+}
+
+func InitializeDataSourceService() (*DataSourceComponents, func(), error) {
 	wire.Build(
 		repository.NewDataSourceRepository,
 		service.NewDataSourceService,
 		handler.NewDataSourceHandler,
+		nsq.NewNSQConfig,
+		nsq.NewNSQConsumer,
+		//wire.Struct(new(*handler.NewDataSourceHandler), "*"),
+		wire.Bind(new(gonsq.Handler), new(*handler.DataSourceHandler)),
+		wire.Struct(new(DataSourceComponents), "Consumer", "DataSourceHandler"),
 	)
-	return &handler.DataSourceHandler{}
+	return &DataSourceComponents{}, nil, nil
 }
